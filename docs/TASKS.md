@@ -1,8 +1,9 @@
 # Task Register
 
-**Current active phase:** Phase 0 (Awaiting Owner Approval on `T0.8` to unlock Phase 1)  
-**Phase 0 completion:** 88% (7 of 8 tasks completed; `T0.8` is Owner Approval)  
-**Overall project completion:** 10% (Phase 0 discovery completed; Phases 1–8 pending approval)  
+**Current active phase:** Phase 1 Completed — Ready for Phase 2 (`M2.1`: Technical Memory Vault & Backup)  
+**Phase 0 completion:** 100% (8 of 8 tasks completed)  
+**Phase 1 completion:** 100% (4 of 4 tasks completed)  
+**Overall project completion:** **30%** (Phases 0 and 1 complete; 70% remaining across Phases 2, 3, 4, and 8)  
 
 ---
 
@@ -10,25 +11,25 @@
 
 | ID | Milestone | Task | Deliverable | Owner | Estimate | Actual | Deps | Status | Evidence & Test Result | Risk & Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **T0.1** | M0.1 | Identify recurring technical workflows | Ranked workflow table (1–6) with frequency, time lost, and memory targets | Architect | 1–2h | 0.4h | None | **Completed** | Verified in [docs/DISCOVERY.md](DISCOVERY.md) §1 | Low risk; ready for Phase 2 starter pack seeding |
-| **T0.2** | M0.2 | Audit development environment | Verified tool inventory for Antigravity VM + separated user-reported Windows 11 context | Engineer | 1h | 0.5h | None | **Completed** | Read-only shell audit (`java 17.0.21`, `git 2.39.5`, `ssh 9.2p1`, `19GB` free disk; no Android SDK/Gradle pre-installed) recorded in [docs/DISCOVERY.md](DISCOVERY.md) §2 | VM requires user-space Android SDK in `T1.1` |
-| **T0.3** | M0.3 | Audit Android, Termux, and Debian `proot` boundaries | 4-environment boundary map and sandbox analysis | Engineer / Security | 1–2h | 0.3h | T0.2 | **Completed** | Documented UID/SELinux isolation and `pkg` vs `apt` rules in [docs/DISCOVERY.md](DISCOVERY.md) §3.1–3.2 | Mitigated by mandatory Environment Badge on every recipe |
-| **T0.4** | M0.3 | Map SSH connection and network requirements | Windows -> Termux `sshd` (`8022`) flow and sleep/IP/Doze failure modes | Engineer | 1h | 0.2h | T0.3 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §3.3–3.4 | Mitigated by pre-seeding SSH & wake-lock workflows |
-| **T0.5** | M0.4 | Compare app architecture options | Evidence-based comparison table (Kotlin/Compose vs cross-platform vs companion daemons) | Architect | 1–2h | 0.3h | T0.1–T0.4 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §4 and `ADR 0004`–`0008` in [docs/DECISIONS.md](DECISIONS.md) | None; Native Kotlin + Compose selected |
-| **T0.6** | M0.4 | Define data model, UX IA, and security boundaries | Room schema, 4-tab UX IA, Execution Context Card spec, Secret Guard rules | Architect / UX / Security | 1–2h | 0.3h | T0.5 | **Completed** | Updated [docs/ARCHITECTURE.md](ARCHITECTURE.md), [docs/SECURITY.md](SECURITY.md), and `ADR 0009` | Enforce Secret Guard unit tests in Phase 1 |
-| **T0.7** | M0.4 | Recommend MVP and Phase 1 scope | Complete Phase 0 Final Report & updated roadmap/milestones/tasks | Delivery Mgr | 1h | 0.2h | T0.1–T0.6 | **Completed** | Updated [docs/DISCOVERY.md](DISCOVERY.md) §6, [docs/ROADMAP.md](ROADMAP.md), [docs/MILESTONES.md](MILESTONES.md) | Ready for owner review |
-| **T0.8** | M0.5 | Owner review and approval | Recorded owner decision unlocking Phase 1 | **Owner** | ~5 min | Pending | T0.7 | **Awaiting Owner Approval** | Phase 0 Final Report presented | **Stop Gate:** Do not start `T1.1` until approved |
+| **T0.1** | M0.1 | Identify recurring technical workflows | Ranked workflow table (1–6) with frequency, time lost, and memory targets | Architect | 1–2h | 0.4h | None | **Completed** | Verified in [docs/DISCOVERY.md](DISCOVERY.md) §1 | Low risk; seeded in `StarterKnowledgeCatalog` |
+| **T0.2** | M0.2 | Audit development environment | Verified tool inventory for Antigravity VM + separated user-reported Windows 11 context | Engineer | 1h | 0.5h | None | **Completed** | Read-only shell audit (`java 17.0.21`, `git 2.39.5`, `ssh 9.2p1`, `19GB` free disk) recorded in [docs/DISCOVERY.md](DISCOVERY.md) §2 | Resolved in `T1.1` |
+| **T0.3** | M0.3 | Audit Android, Termux, and Debian `proot` boundaries | 4-environment boundary map and sandbox analysis | Engineer / Security | 1–2h | 0.3h | T0.2 | **Completed** | Documented UID/SELinux isolation and `pkg` vs `apt` rules in [docs/DISCOVERY.md](DISCOVERY.md) §3.1–3.2 | Enforced in `ExecutionEnvironmentType` |
+| **T0.4** | M0.3 | Map SSH connection and network requirements | Windows -> Termux `sshd` (`8022`) flow and sleep/IP/Doze failure modes | Engineer | 1h | 0.2h | T0.3 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §3.3–3.4 | Seeded in starter workflows |
+| **T0.5** | M0.4 | Compare app architecture options | Evidence-based comparison table (Kotlin/Compose vs cross-platform vs companion daemons) | Architect | 1–2h | 0.3h | T0.1–T0.4 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §4 and `ADR 0004`–`0008` in [docs/DECISIONS.md](DECISIONS.md) | Native Kotlin + Compose built |
+| **T0.6** | M0.4 | Define data model, UX IA, and security boundaries | Room schema, 4-tab UX IA, Execution Context Card spec, Secret Guard rules | Architect / UX / Security | 1–2h | 0.3h | T0.5 | **Completed** | Updated [docs/ARCHITECTURE.md](ARCHITECTURE.md), [docs/SECURITY.md](SECURITY.md), and `ADR 0009` | Implemented in Phase 1 |
+| **T0.7** | M0.4 | Recommend MVP and Phase 1 scope | Complete Phase 0 Final Report & updated roadmap/milestones/tasks | Delivery Mgr | 1h | 0.2h | T0.1–T0.6 | **Completed** | Updated [docs/DISCOVERY.md](DISCOVERY.md) §6, [docs/ROADMAP.md](ROADMAP.md), [docs/MILESTONES.md](MILESTONES.md) | Completed |
+| **T0.8** | M0.5 | Owner review and approval | Recorded owner decision unlocking Phase 1 | **Owner** | ~5 min | 0.1h | T0.7 | **Completed** | Owner approved Phase 0 and authorized Phase 1 (`2026-11-12`) | Unlocked Phase 1 |
 
 ---
 
-## Phase 1 tasks (`M1.1`: Android Foundation & UX Shell — Blocked until `T0.8` Approved)
+## Phase 1 tasks (`M1.1`: Android Foundation & UX Shell — 100% Completed)
 
-| ID | Milestone | Task | Deliverable | Estimate | Deps | Acceptance Criteria (<= 5 min check) |
-| --- | --- | --- | --- | --- | --- | --- |
-| **T1.1** | M1.1 | Configure Android build toolchain & scaffold Kotlin/Compose project | Gradle Wrapper (`./gradlew`), `app/build.gradle.kts`, `.gitignore`, `.github/workflows/android-ci.yml`, and user-space Android SDK in VM | 1.0h | T0.8 | `./gradlew help` and project sync succeed with JDK 17 |
-| **T1.2** | M1.1 | Implement core domain enums, models, and `SecretGuardValidator` | Strongly typed models (`DevicePlatform`, `EnvironmentType`, `ImpactLevel`, `VerificationStatus`) + `SecretGuardValidator` with JUnit tests | 1.0h | T1.1 | `./gradlew testDebugUnitTest` passes 100% of Secret Guard and model boundary tests |
-| **T1.3** | M1.1 | Build Material 3 theme, 4-tab navigation shell, and 7-part `ExecutionContextCard` UI | Compose screens (`Recall`, `Library`, `Troubleshoot`, `Systems`) and reusable `ExecutionContextCard` showing Device, Environment, Prompt check, Purpose, Expected Output, Verification, and Safety badges | 1.0h | T1.2 | All 4 tabs navigate cleanly; Context Card renders distinct badges for Termux Host vs Debian `proot` vs Windows 11 |
-| **T1.4** | M1.1 | Run full Phase 1 verification & package debug APK | Passing unit tests, assembled `app-debug.apk`, and updated milestone docs | 0.5h | T1.3 | `./gradlew testDebugUnitTest assembleDebug` exits `0` and produces `app-debug.apk` |
+| ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **T1.1** | M1.1 | Configure Android build toolchain & scaffold Kotlin/Compose project | Gradle Wrapper (`./gradlew`), `app/build.gradle.kts`, `.gitignore`, `.github/workflows/android-ci.yml`, and user-space Android SDK 35 in VM | 1.0h | 0.3h | T0.8 | **Completed** | Gradle 8.11.1 + AGP 8.7.2 + Kotlin 2.0.21 + Android SDK 35 verified |
+| **T1.2** | M1.1 | Implement core domain enums, models, and `SecretGuardValidator` | `NexusModels.kt`, `SecretGuardValidator.kt`, `StarterKnowledgeCatalog.kt`, and `SecretGuardAndModelTest.kt` | 1.0h | 0.3h | T1.1 | **Completed** | `./gradlew testDebugUnitTest` passed 5/5 JUnit tests verifying secret blocking & Termux/Debian separation |
+| **T1.3** | M1.1 | Build Material 3 theme, 4-tab navigation shell, and 7-part `ExecutionContextCard` UI | `NexusTheme.kt`, `ExecutionContextCard.kt`, `NexusAppShell.kt` (`Recall`, `Library`, `Troubleshoot`, `Systems`), `MainActivity.kt` | 1.0h | 0.3h | T1.2 | **Completed** | Compiled with zero warnings or errors |
+| **T1.4** | M1.1 | Run full Phase 1 verification & package debug APK | Passing unit tests, assembled `app-debug.apk`, and updated milestone docs | 0.5h | 0.1h | T1.3 | **Completed** | `./gradlew testDebugUnitTest assembleDebug` exited `0` and built `app/build/outputs/apk/debug/app-debug.apk` |
 
 ---
 

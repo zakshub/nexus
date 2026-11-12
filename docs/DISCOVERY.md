@@ -255,5 +255,5 @@ Before Phase 1 implementation begins, the owner must review and approve:
 - [x] MVP scope defined and separated from later execution phases.
 - [x] Security boundaries and threat mitigations documented.
 - [x] Architecture decisions recorded in `docs/DECISIONS.md`.
-- [ ] **Owner approves Phase 0 findings and authorizes Phase 1.**
+- [x] **Owner approves Phase 0 findings and authorizes Phase 1 (`2026-11-12`).**
 

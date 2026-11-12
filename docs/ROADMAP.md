@@ -1,12 +1,12 @@
 # Roadmap
 
-**Current status:** Phase 0 Discovery completed (`88%` — Milestones `M0.1` to `M0.4` complete; `M0.5` awaiting owner approval). No application code has been written yet.
+**Current status:** Phase 0 (`100%`) and Phase 1 (`100%`) completed (`30%` overall MVP completion). Ready for Phase 2 (Local Database Vault & Backup/Export).
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |
-| **0** | **Discovery and validation** | Verify environment, use cases, boundaries, UX, security, and architecture | 2.5 hours | **Awaiting Owner Sign-Off (`M0.5`)** | **88%** |
-| **1** | **Android foundation & UX shell** | Create Kotlin/Compose app shell, 4-tab navigation, Execution Context Card UI, unit tests, and CI build pipeline | 3–4 hours | **Ready — Blocked by Phase 0 Approval** | 0% |
-| **2** | **Technical memory & starter pack** | Room SQLite + FTS4 database, Secret Guard, JSON/MD export, and pre-seeded Pixel 7 Pro / Termux / Debian / Windows 11 memory | 4–5 hours | Planned | 0% |
+| **0** | **Discovery and validation** | Verify environment, use cases, boundaries, UX, security, and architecture | 2.5 hours | **Completed (`2026-11-12`)** | **100%** |
+| **1** | **Android foundation & UX shell** | Create Kotlin/Compose app shell, 4-tab navigation, Execution Context Card UI, unit tests, and CI build pipeline | 3–4 hours | **Completed (`2026-11-12`)** | **100%** |
+| **2** | **Technical memory & starter pack** | Room SQLite + FTS4 database, Secret Guard, JSON/MD export, and pre-seeded Pixel 7 Pro / Termux / Debian / Windows 11 memory | 4–5 hours | **Next Up (Ready)** | 0% |
 | **3** | **Search & guided workflows** | Instant environment-filtered search, recipe verification flows, and resumable step-by-step workflows | 4–5 hours | Planned | 0% |
 | **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with offline retrieval, opt-in Gemini redaction + Context Preview, and citations | 3–4 hours | Planned | 0% |
 | **5** | **Read-only inspection** | Permissioned Termux Intent or localhost SSH read-only environment health checks | 4–6 hours | Postponed (Post-MVP) | 0% |

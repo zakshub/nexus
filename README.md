@@ -6,12 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Discovery and product definition  
-**Release:** No release exists  
-**Implementation:** Not started  
-**Current priority:** Complete Phase 0 discovery and validate the architecture before building the app.
-
-All technical choices in this repository are proposals until validated and recorded in an architecture decision.
+**Stage:** Phase 1 Complete (Android Foundation & UX Shell Built)  
+**Release:** `0.1.0-phase1` (`app-debug.apk` verified)  
+**Implementation:** Phase 0 (100%) and Phase 1 (100%) complete; Overall MVP 30% complete  
+**Current priority:** Phase 2 — Local Room Database Vault, Backup/Export, and Editable Memory.
 
 ## The problem
 

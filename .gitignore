@@ -1,0 +1,25 @@
+# Gradle build and cache
+.gradle/
+build/
+**/build/
+local.properties
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystores and secrets (never commit credentials)
+*.jks
+*.keystore
+.env
+.env.*
+secrets.properties
+
+# OS / temporary files
+.DS_Store
+Thumbs.db
+*.log
