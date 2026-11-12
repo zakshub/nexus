@@ -1,6 +1,6 @@
 # NEXUS Owner Playbook
 
-**Version:** 0.8.0-final  
+**Version:** 0.9.0  
 **Target User:** Designer & System Owner (Pixel 7 Pro + Windows 11 + Termux + Debian proot)  
 **Read Time:** ~5 minutes  
 
@@ -20,7 +20,7 @@ You don't need the Google Play Store or developer tools to install NEXUS.
 
 ### Step-by-Step Installation:
 1. **Download the APK:**
-   - Grab `app-debug.apk` (built from `app/build/outputs/apk/debug/app-debug.apk` in this repository).
+   - Grab `app-debug.apk` (or `release/nexus-v0.9.0.apk` in this repository).
    - Transfer it to your Pixel 7 Pro via USB cable, Google Drive, or local file sharing.
 2. **Open the File:**
    - Open the **Files by Google** app (or any file manager) on your phone.
@@ -37,8 +37,10 @@ You don't need the Google Play Store or developer tools to install NEXUS.
 ## 3. How to Use NEXUS Every Day (The 4 Tabs)
 
 ### Tab 1: Recall (Instant Search & Verification)
+* **⭐ Pinned Daily Fast-Track:** Right at the top of your screen, your top 4 daily routines (Start SSH + wake lock, check Wi-Fi IP, connect from Windows, and start local Python server) are ready for 1-tap copying without typing anything!
+* **Open Termux Shortcut:** Tap the **Open Termux** button at the top to immediately switch directly into the Termux app on your phone.
 * **Instant Shell Filter:** Tap the filter chips at the top (**Termux**, **Debian proot**, or **Windows PowerShell**) to only see commands for that specific shell. You'll never accidentally run a Debian command inside Termux again.
-* **Instant Search:** Type any keyword (e.g. `ssh`, `port 8022`, `update`, `disk`).
+* **Instant Search:** Type any keyword (e.g. `ssh`, `port 8022`, `python`, `git`, `ram`, `clean`).
 * **One-Tap Copy:** Tap the **Copy Command** button on any card. A toast will confirm what shell and device it is meant for.
 * **Verify Your Setup:** If a command worked for you, tap **Mark as Verified** to turn its badge green (`Verified on Your Setup`).
 

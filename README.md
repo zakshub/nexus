@@ -6,9 +6,9 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Personal MVP Complete (Phases 0, 1, 2, 3, 4 & 8 Complete)  
-**Release:** `0.8.0-final` (`app-debug.apk` 56MB verified, 20/20 unit tests passing)  
-**Implementation:** Phase 0 (100%), Phase 1 (100%), Phase 2 (100%), Phase 3 (100%), Phase 4 (100%), Phase 8 (100%); **Personal MVP 100% complete**  
+**Stage:** Fast-Track Daily Routines & Advanced Knowledge Vault Released  
+**Release:** `0.9.0` (`app-debug.apk` 56MB verified, 23/23 unit tests passing)  
+**Implementation:** Personal MVP + Fast-Track Daily Routines + Termux Launcher + 23 Unit Tests (**100% complete**)  
 **User guide:** See [5-Minute Owner Playbook](docs/OWNER_PLAYBOOK.md) for installation and daily usage.
 
 ## The problem

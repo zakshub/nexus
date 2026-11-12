@@ -354,6 +354,83 @@ private fun RecallScreen(
             }
         }
 
+        val pinnedRecipes = recipes.filter { it.isPinnedDaily }
+        if (pinnedRecipes.isNotEmpty() && searchQuery.isBlank() && selectedEnv == null) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                    border = BorderStroke(1.dp, NexusColors.Secondary.copy(alpha = 0.6f)),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "⭐ Pinned Daily Fast-Track",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.Secondary
+                            )
+                            val currentContext = LocalContext.current
+                            OutlinedButton(
+                                onClick = {
+                                    val launchIntent = currentContext.packageManager.getLaunchIntentForPackage("com.termux")
+                                    if (launchIntent != null) {
+                                        currentContext.startActivity(launchIntent)
+                                    }
+                                },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                            ) {
+                                Text("Open Termux", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "One-tap copy for your daily startup and test routines:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = NexusColors.TextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        pinnedRecipes.take(4).forEach { pinned ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = pinned.title,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = NexusColors.TextPrimary
+                                    )
+                                    Text(
+                                        text = pinned.commandSyntax,
+                                        fontFamily = FontFamily.Monospace,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = NexusColors.Primary
+                                    )
+                                }
+                                Button(
+                                    onClick = { onCopyCommand(pinned) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Copy", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         item {
             Text(
                 text = "Verified Command Cards (${filteredRecipes.size})",

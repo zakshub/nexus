@@ -193,6 +193,94 @@ object StarterKnowledgeCatalog {
             impactLevel = ImpactLevel.READ_ONLY,
             verificationStatus = VerificationStatus.VERIFIED,
             isPinnedDaily = false
+        ),
+        CommandRecipe(
+            id = "recipe-python-local-server",
+            title = "Start Local Python Web Server on Port 8080",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Runs a lightweight local web server from your current folder so you can preview HTML designs or download files on your Windows 11 laptop browser at http://<PHONE_IP>:8080.",
+            commandSyntax = "python3 -m http.server 8080",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "python3",
+                    meaningPlainEnglish = "Runs the Python interpreter installed in Termux."
+                ),
+                CommandParameterBreakdown(
+                    token = "-m http.server 8080",
+                    meaningPlainEnglish = "Starts a simple HTTP web server serving files on port 8080."
+                )
+            ),
+            expectedOutputPlainEnglish = "Prints `Serving HTTP on 0.0.0.0 port 8080 ...`. Press Ctrl+C in Termux when done.",
+            impactLevel = ImpactLevel.READ_ONLY,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = true
+        ),
+        CommandRecipe(
+            id = "recipe-termux-storage-clean",
+            title = "Clean Package Cache to Free Up Phone Storage",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Deletes old downloaded installer archives (.deb files) in Termux to reclaim storage space on your Pixel 7 Pro.",
+            commandSyntax = "pkg clean && termux-wake-unlock",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "pkg clean",
+                    meaningPlainEnglish = "Cleans cached installation packages from Termux cache."
+                ),
+                CommandParameterBreakdown(
+                    token = "termux-wake-unlock",
+                    meaningPlainEnglish = "Releases the Android wake lock if you are done working."
+                )
+            ),
+            expectedOutputPlainEnglish = "Frees up internal storage space safely without removing any installed tools.",
+            impactLevel = ImpactLevel.CONFIG_CHANGE,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = false
+        ),
+        CommandRecipe(
+            id = "recipe-git-safe-sync",
+            title = "Check Git Working Tree & Fast-Forward Pull",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Checks whether you have any uncommitted design files or code edits before safely updating your repository without messy merge conflicts.",
+            commandSyntax = "git status -s && git pull --ff-only",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "git status -s",
+                    meaningPlainEnglish = "Shows short summary of modified or untracked files."
+                ),
+                CommandParameterBreakdown(
+                    token = "git pull --ff-only",
+                    meaningPlainEnglish = "Pulls latest commits only if it can be fast-forwarded cleanly without creating a merge commit."
+                )
+            ),
+            expectedOutputPlainEnglish = "Shows current changed files and updates branch to the latest commit.",
+            impactLevel = ImpactLevel.CONFIG_CHANGE,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = true
+        ),
+        CommandRecipe(
+            id = "recipe-phone-ram-check",
+            title = "Check Active RAM & Memory Usage on Pixel 7 Pro",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Shows how much of your Pixel 7 Pro's 12 GB RAM is currently free, used, or cached by background processes.",
+            commandSyntax = "free -h",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "free -h",
+                    meaningPlainEnglish = "Displays memory statistics in human-readable gigabytes (GB)."
+                )
+            ),
+            expectedOutputPlainEnglish = "Displays total memory (~11Gi), used memory, and available memory in gigabytes.",
+            impactLevel = ImpactLevel.READ_ONLY,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = false
         )
     )
 
@@ -271,6 +359,39 @@ object StarterKnowledgeCatalog {
             plainEnglishWhyItHappens = "You are likely still in the outer Termux Host shell (`~ \$`) instead of inside Debian (`root@localhost:~#`). Termux uses `pkg`, whereas standard Debian packages require entering Debian first.",
             safeReadOnlyCheckCommand = "cat /etc/os-release",
             verifiedFixCommand = "proot-distro login debian",
+            verificationStatus = VerificationStatus.VERIFIED
+        ),
+        TroubleshootingCase(
+            id = "case-proot-dns-resolution",
+            symptomTitle = "Debian proot Cannot Reach Internet ('Temporary failure in name resolution')",
+            exactErrorSnippet = "Could not resolve 'deb.debian.org' / Temporary failure in name resolution",
+            targetDeviceName = "Google Pixel 7 Pro",
+            environmentType = ExecutionEnvironmentType.DEBIAN_PROOT,
+            plainEnglishWhyItHappens = "When switching Wi-Fi networks or reconnecting, Android's DNS resolver settings didn't copy into Debian proot's `/etc/resolv.conf` file.",
+            safeReadOnlyCheckCommand = "cat /etc/resolv.conf",
+            verifiedFixCommand = "echo \"nameserver 8.8.8.8\" > /etc/resolv.conf",
+            verificationStatus = VerificationStatus.VERIFIED
+        ),
+        TroubleshootingCase(
+            id = "case-battery-killer",
+            symptomTitle = "SSH Session Freezes or Disconnects After Screen Turns Off",
+            exactErrorSnippet = "packet_write_wait: Connection to 192.168.x.x port 8022: Broken pipe",
+            targetDeviceName = "Google Pixel 7 Pro",
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            plainEnglishWhyItHappens = "Android Doze or Battery Optimization put Termux into deep sleep because `termux-wake-lock` was not activated before locking the phone.",
+            safeReadOnlyCheckCommand = "dumpsys battery",
+            verifiedFixCommand = "termux-wake-lock && sshd",
+            verificationStatus = VerificationStatus.VERIFIED
+        ),
+        TroubleshootingCase(
+            id = "case-git-ssh-key",
+            symptomTitle = "Git Push Fails With 'Permission denied (publickey)'",
+            exactErrorSnippet = "git@github.com: Permission denied (publickey). fatal: Could not read from remote repository.",
+            targetDeviceName = "Windows 11 Laptop",
+            environmentType = ExecutionEnvironmentType.WINDOWS_POWERSHELL,
+            plainEnglishWhyItHappens = "Your SSH client didn't load your SSH private key, or the matching public key is not registered under your GitHub account.",
+            safeReadOnlyCheckCommand = "ssh -T git@github.com",
+            verifiedFixCommand = "ssh-add \$HOME/.ssh/id_rsa && ssh -T git@github.com",
             verificationStatus = VerificationStatus.VERIFIED
         )
     )

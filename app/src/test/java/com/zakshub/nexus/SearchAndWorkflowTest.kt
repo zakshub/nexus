@@ -78,4 +78,30 @@ class SearchAndWorkflowTest {
         assertEquals("pgrep -l sshd", sshCase?.safeReadOnlyCheckCommand)
         assertEquals("termux-wake-lock && sshd", sshCase?.verifiedFixCommand)
     }
+
+    @Test
+    fun `pinned daily recipes include startup sequence and local server`() {
+        val pinned = StarterKnowledgeCatalog.recipes.filter { it.isPinnedDaily }
+        assertTrue("Expected at least 3 pinned daily recipes", pinned.size >= 3)
+        assertTrue(pinned.any { it.commandSyntax.contains("sshd") })
+        assertTrue(pinned.any { it.commandSyntax.contains("wlan0") })
+        assertTrue(pinned.any { it.commandSyntax.contains("http.server") })
+    }
+
+    @Test
+    fun `expanded catalog contains RAM check, storage clean, and git sync recipes`() {
+        val recipes = StarterKnowledgeCatalog.recipes
+        assertTrue(recipes.any { it.id == "recipe-phone-ram-check" && it.commandSyntax == "free -h" })
+        assertTrue(recipes.any { it.id == "recipe-termux-storage-clean" && it.commandSyntax.contains("pkg clean") })
+        assertTrue(recipes.any { it.id == "recipe-git-safe-sync" && it.commandSyntax.contains("git status -s") })
+    }
+
+    @Test
+    fun `expanded troubleshooting cases contain DNS, battery killer, and git key fixes`() {
+        val cases = StarterKnowledgeCatalog.troubleshootingCases
+        assertTrue(cases.size >= 5)
+        assertTrue(cases.any { it.id == "case-proot-dns-resolution" && it.verifiedFixCommand.contains("8.8.8.8") })
+        assertTrue(cases.any { it.id == "case-battery-killer" && it.verifiedFixCommand.contains("termux-wake-lock") })
+        assertTrue(cases.any { it.id == "case-git-ssh-key" && it.verifiedFixCommand.contains("ssh-add") })
+    }
 }
