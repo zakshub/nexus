@@ -1,5 +1,6 @@
 # Gradle build and cache
 .gradle/
+.kotlin/
 build/
 **/build/
 local.properties
@@ -22,5 +23,5 @@ secrets.properties
 # OS / temporary files
 .DS_Store
 Thumbs.db
-*.log
-!release/nexus-v0.9.0.apk
+*.apk
+!release/nexus-v0.10.0.apk

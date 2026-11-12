@@ -1,6 +1,6 @@
 # NEXUS Owner Playbook
 
-**Version:** 0.9.0  
+**Version:** 0.10.0  
 **Target User:** Designer & System Owner (Pixel 7 Pro + Windows 11 + Termux + Debian proot)  
 **Read Time:** ~5 minutes  
 
@@ -20,11 +20,11 @@ You don't need the Google Play Store or developer tools to install NEXUS.
 
 ### Step-by-Step Installation:
 1. **Download the APK:**
-   - Grab `app-debug.apk` (or `release/nexus-v0.9.0.apk` in this repository).
-   - Transfer it to your Pixel 7 Pro via USB cable, Google Drive, or local file sharing.
+   - Grab `app-debug.apk` (or `release/nexus-v0.10.0.apk` in this repository).
+   - Direct download URL: `https://github.com/zakshub/nexus/raw/main/release/nexus-v0.10.0.apk`
 2. **Open the File:**
    - Open the **Files by Google** app (or any file manager) on your phone.
-   - Tap on `app-debug.apk`.
+   - Tap on `nexus-v0.10.0.apk`.
 3. **Allow Installation (One-Time Prompt):**
    - Android will ask: *"For your security, your phone is not allowed to install unknown apps from this source."*
    - Tap **Settings** → toggle **Allow from this source** ON.
@@ -50,17 +50,21 @@ You don't need the Google Play Store or developer tools to install NEXUS.
 * **Secret Guard Live Protection:** If you accidentally paste a password, SSH private key, or API token into a note, NEXUS will highlight it in red and block saving until the secret is removed.
 
 ### Tab 3: Troubleshoot & Grounded AI Assistant
-* **Proven Error Fixes:** Browse common issues (like *SSH Connection Timed Out*, *Command Not Found: apt*, or *Host Key Verification Failed*). Each card gives you a safe read-only check and a verified fix.
+* **Proven Error Fixes:** Browse common issues (like *SSH Connection Timed Out*, *Command Not Found: apt*, *DNS Resolution Failed*, or *Battery Killer Freezes*). Each card gives you a safe read-only check and a verified fix.
 * **Grounded Technical Assistant:**
   - Enter your issue or paste a terminal error message.
   - Tap **Preview Context** to see exactly what the assistant will inspect (all secrets are automatically scrubbed).
   - Tap **Diagnose Safe Fix**: NEXUS will look through your own saved notes and verified solutions to give you a plain-English explanation, target shell badge, and copyable command with direct citations.
   - **High-Risk Command Radar:** If a command could delete files (`rm -rf /`) or reformat drives, NEXUS shows a prominent red caution banner.
 
-### Tab 4: Systems & Backup
+### Tab 4: Systems & Live Health Inspector
+* **📡 Live Environment Inspector (Phase 5):**
+  - **Live SSH Daemon Check:** Instantly probes localhost port 8022 to confirm if your Termux SSH server is actively running (`Open / Listening`) or stopped.
+  - **Auto-Detected Wi-Fi IP:** Automatically detects your Pixel 7 Pro's active Wi-Fi address (e.g. `192.168.1.145`) with a 1-tap **Copy IP** button so you can connect from Windows immediately!
+  - **Live Battery & Power State:** Displays battery percentage and charging status to ensure your phone stays awake.
 * **Device & Environment Profiles:** Review filesystem rules, package managers (`pkg` for Termux vs `apt` for Debian), and pitfall warnings.
-* **One-Tap Export:** Tap **Export JSON** or **Export Markdown** to copy your entire technical memory vault to the clipboard. Paste it into an email, GitHub gist, or Google Keep as an instant backup.
-* **One-Tap Restore:** Tap **Restore from Backup JSON**, paste your saved JSON, and tap **Scan with Secret Guard & Restore**. NEXUS scans for sensitive leaks and restores all your recipes and troubleshooting history.
+* **One-Tap Export:** Tap **Export JSON** or **Export Markdown** to copy your entire technical memory vault to the clipboard.
+* **One-Tap Restore:** Tap **Restore from Backup JSON**, paste your saved JSON, and tap **Scan with Secret Guard & Restore**.
 
 ---
 

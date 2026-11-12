@@ -44,12 +44,16 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.zakshub.nexus.inspect.EnvironmentInspector
+import com.zakshub.nexus.inspect.LiveHealthReport
+import com.zakshub.nexus.inspect.PortStatus
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -992,16 +996,153 @@ private fun SystemsScreen(
     onExportMarkdown: () -> Unit,
     onImportJson: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboardManager.current
+
     var candidateNote by remember { mutableStateOf("") }
     val validation = remember(candidateNote) { SecretGuardValidator.validate(candidateNote) }
 
     var importPayloadText by remember { mutableStateOf("") }
     var showImportBox by remember { mutableStateOf(false) }
 
+    var healthReport by remember { mutableStateOf<LiveHealthReport?>(null) }
+    var isProbing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        healthReport = EnvironmentInspector.inspectAll(context)
+    }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                border = BorderStroke(1.dp, NexusColors.Primary.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "📡 Live Environment Inspector",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NexusColors.Primary
+                        )
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    isProbing = true
+                                    healthReport = EnvironmentInspector.inspectAll(context)
+                                    isProbing = false
+                                }
+                            },
+                            enabled = !isProbing,
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                        ) {
+                            Text(if (isProbing) "Probing..." else "Re-probe", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                    Text(
+                        text = "Real-time non-blocking read-only inspection of localhost SSH daemon and local network state.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    val port = healthReport?.sshPortStatus ?: PortStatus.UNREACHABLE
+                    val portColor = if (port == PortStatus.OPEN) NexusColors.ImpactSafeGreen else NexusColors.ImpactCautionRed
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Termux SSH (Port 8022)",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.TextPrimary
+                            )
+                            Text(
+                                text = port.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = portColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        BadgePill(
+                            text = if (port == PortStatus.OPEN) "Ready for SSH" else "Not Running",
+                            color = portColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val wifiIp = healthReport?.detectedWifiIp
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Detected Phone Wi-Fi IP",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.TextPrimary
+                            )
+                            Text(
+                                text = wifiIp ?: "No active Wi-Fi detected",
+                                fontFamily = FontFamily.Monospace,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (wifiIp != null) NexusColors.Primary else NexusColors.TextSecondary
+                            )
+                        }
+                        if (wifiIp != null) {
+                            Button(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(wifiIp))
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text("Copy IP", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+
+                    healthReport?.batteryPercent?.let { percent ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Battery & Power",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.TextPrimary
+                            )
+                            Text(
+                                text = "$percent% · ${if (healthReport?.isCharging == true) "Charging ⚡" else "On Battery"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = NexusColors.TextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         item {
             Text(
                 text = "My Devices & Execution Environments",

@@ -6,9 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Fast-Track Daily Routines & Advanced Knowledge Vault Released  
-**Release:** `0.9.0` (`app-debug.apk` 56MB verified, 23/23 unit tests passing)  
-**Implementation:** Personal MVP + Fast-Track Daily Routines + Termux Launcher + 23 Unit Tests (**100% complete**)  
+**Stage:** Phase 5 Complete (Live Read-Only Environment Inspector & Port Probing Active)  
+**Release:** `0.10.0` (`release/nexus-v0.10.0.apk` 56MB verified, 26/26 unit tests passing)  
+**Implementation:** Personal MVP + Fast-Track Daily Routines + Phase 5 Live Environment Inspector (**100% complete**)  
+**Direct APK Download:** [Download NEXUS APK v0.10.0](https://github.com/zakshub/nexus/raw/main/release/nexus-v0.10.0.apk)  
 **User guide:** See [5-Minute Owner Playbook](docs/OWNER_PLAYBOOK.md) for installation and daily usage.
 
 ## The problem

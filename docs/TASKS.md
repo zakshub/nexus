@@ -64,17 +64,25 @@
 | **T4.3** | M4.1 | Implement `ContextRedactor` and Context Preview Dialog | SecretGuard-backed sanitization, prompt injection defense, and destructive command detection | 1.0h | 0.2h | T4.2 | **Completed** | Verified: blocks passwords, API tokens, flags `rm -rf /`, `mkfs`, `chmod 777` |
 | **T4.4** | M4.1 | Wire Assistant into UI & run Phase 4 unit tests | Interactive card in `TroubleshootScreen`, `AiAssistantTest.kt`, assemble debug APK | 1.0h | 0.2h | T4.3 | **Completed** | 20/20 unit tests passing (`100%`), `app-debug.apk` (56MB) assembled |
 
+## Phase 5 tasks (`M5.1`: Live Read-Only Environment Inspector — 100% Completed)
+
+| ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **T5.1** | M5.1 | Build localhost SSH probe & Wi-Fi IP auto-detection | `EnvironmentInspector.kt` (`probeLocalPort`, `detectWifiIp`, `getBatteryInfo`) | 1.0h | 0.3h | T8.4 | **Completed** | Non-blocking socket connect to `127.0.0.1:8022`; network interface IP extraction |
+| **T5.2** | M5.1 | Define Termux Allowlisted Read-Only Command Bridge | `TermuxBridge.kt` with `TermuxCommandSpec` and strict allowlist | 1.0h | 0.2h | T5.1 | **Completed** | Strictly allows read-only checks (`uptime`, `free -h`); rejects dangerous commands |
+| **T5.3** | M5.1 | Wire Live Health Inspector into Systems Screen | Interactive card in `SystemsScreen` with live port badge, Copy IP button, and re-probe | 1.0h | 0.3h | T5.2 | **Completed** | Live status card renders port status, local Wi-Fi IP, and battery charging state |
+| **T5.4** | M5.1 | Write Phase 5 unit tests & assemble APK v0.10.0 | `EnvironmentInspectionTest.kt`, assemble debug APK | 1.0h | 0.2h | T5.3 | **Completed** | 26/26 unit tests passing (`100%`), `nexus-v0.10.0.apk` (56MB) assembled |
+
 ## Phase 8 tasks (`M8.1`: Personal Release & Owner Playbook — 100% Completed)
 
 | ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **T8.1** | M8.1 | Package Personal Release APK `v0.8.0-final` | `app/build.gradle.kts` updated to `versionCode = 8`, `versionName = "0.8.0-final"` | 0.5h | 0.1h | T4.4 | **Completed** | Gradle build outputs verified release-ready `app-debug.apk` (56MB) |
+| **T8.1** | M8.1 | Package Personal Release APK `v0.10.0` | `app/build.gradle.kts` updated to `versionCode = 10`, `versionName = "0.10.0"` | 0.5h | 0.1h | T4.4 | **Completed** | Gradle build outputs verified release-ready `app-debug.apk` (56MB) |
 | **T8.2** | M8.1 | End-to-end Vault Backup & Restore verification | Verification of JSON & Markdown export/import routines with Secret Guard scanner | 0.5h | 0.2h | T8.1 | **Completed** | Full round-trip tested; blocks leaked SSH keys/tokens; restores recipes & cases |
 | **T8.3** | M8.1 | Write 5-minute Owner Playbook | `docs/OWNER_PLAYBOOK.md` detailing Pixel 7 Pro APK installation, daily 4-tab usage, and SSH cheat-sheet | 1.0h | 0.3h | T8.2 | **Completed** | Plain-English non-technical guide published in `docs/OWNER_PLAYBOOK.md` |
-| **T8.4** | M8.1 | Final Acceptance & Documentation sync | Update `README.md`, `ROADMAP.md`, `MILESTONES.md`, and push to GitHub | 0.5h | 0.1h | T8.3 | **Completed** | 20/20 unit tests pass, overall MVP is 100% completed, pushed to `main` |
+| **T8.4** | M8.1 | Final Acceptance & Documentation sync | Update `README.md`, `ROADMAP.md`, `MILESTONES.md`, and push to GitHub | 0.5h | 0.1h | T8.3 | **Completed** | 26/26 unit tests pass, pushed to `main` |
 
-### Post-MVP Optional Work (Phases 5 to 7 & 9)
-- **Phase 5 (`M5.1`):** Select and prototype one permissioned read-only inspection workflow (Termux `RUN_COMMAND` Intent or localhost SSH `127.0.0.1:8022`).
+### Post-MVP Optional Work (Phases 6, 7 & 9)
 - **Phase 6 (`M6.1`):** Add typed allowlisted operations, per-action approval modal, execution timeouts, output limits, and audit verification.
 - **Phase 7 (`M7.1`):** Evaluate Windows 11 companion only if manual SSH handoff proves insufficient.
 - **Phase 9 (`M9.1`):** Commercial feasibility research only after personal utility is demonstrated.

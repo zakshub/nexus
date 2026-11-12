@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current status:** Personal MVP + Fast-Track Daily Routines & Advanced Knowledge Vault (`100%` completed). Release `v0.9.0` packaged with 23 passing unit tests, Termux launcher shortcut, and expanded recipe vault.
+**Current status:** Phase 0–5 & Phase 8 (`100%` completed). Release `v0.10.0` packaged with Phase 5 Live Environment Inspector, localhost SSH probing, Wi-Fi IP auto-detection, and 26 passing unit tests.
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |
@@ -9,10 +9,10 @@
 | **2** | **Technical memory & starter pack** | Room SQLite database, Secret Guard, JSON/MD export & restore, and pre-seeded Pixel 7 Pro / Termux / Debian / Windows 11 memory | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
 | **3** | **Search & guided workflows** | Instant environment-filtered search, recipe verification flows, and resumable step-by-step workflows | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
 | **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with 100% offline retrieval, secret sanitization, high-risk detection, and citations | 3–4 hours | **Completed (`2026-11-12`)** | **100%** |
-| **5** | **Read-only inspection** | Permissioned Termux Intent or localhost SSH read-only environment health checks | 4–6 hours | Postponed (Post-MVP) | 0% |
+| **5** | **Read-only inspection** | Localhost port 8022 socket probe, Wi-Fi IP detection, battery monitoring, and Termux read-only bridge | 4–6 hours | **Completed (`2026-11-12`)** | **100%** |
 | **6** | **Approved operations** | Typed allowlisted operations with per-action approval, timeouts, redaction, and audit trail | 5–7 hours | Postponed (Post-MVP) | 0% |
 | **7** | **Windows companion** | Optional Windows 11 bridge if manual SSH handoff proves insufficient | 6–8 hours | Optional / Deferred | 0% |
-| **8** | **Personal release** | Signed personal APK (`v0.9.0`), fast-track pinned routines, Termux launcher, and owner playbook | 2–3 hours | **Completed (`2026-11-12`)** | **100%** |
+| **8** | **Personal release** | Signed personal APK (`v0.10.0`), fast-track pinned routines, Termux launcher, and owner playbook | 2–3 hours | **Completed (`2026-11-12`)** | **100%** |
 | **9** | **Commercial feasibility** | Evaluate broader market demand only after personal utility is proven | TBD | Optional research | 0% |
 
 ---
