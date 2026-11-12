@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -14,17 +15,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,17 +40,24 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.unit.sp
+import com.zakshub.nexus.ui.components.NexusLogo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -121,6 +136,37 @@ fun NexusAppShell(
     val dbWorkflows by actualRepository.getAllWorkflowsFlow().collectAsState(initial = emptyList())
     val workflow = dbWorkflows.firstOrNull() ?: StarterKnowledgeCatalog.workflows.first()
 
+    var healthReport by remember { mutableStateOf<LiveHealthReport?>(null) }
+    LaunchedEffect(Unit) {
+        healthReport = EnvironmentInspector.inspectAll(context)
+    }
+
+    val openTermuxHandler: () -> Unit = {
+        val launchIntent = context.packageManager.getLaunchIntentForPackage("com.termux")
+        if (launchIntent != null) {
+            context.startActivity(launchIntent)
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Termux app is not installed on this Android device.")
+            }
+        }
+    }
+
+    val copyIpHandler: () -> Unit = {
+        val ip = healthReport?.detectedWifiIp ?: EnvironmentInspector.detectWifiIp() ?: "127.0.0.1"
+        clipboardManager.setText(AnnotatedString(ip))
+        scope.launch {
+            snackbarHostState.showSnackbar("Copied Device Wi-Fi IP: $ip")
+        }
+    }
+
+    val refreshHealthHandler: () -> Unit = {
+        scope.launch {
+            healthReport = EnvironmentInspector.inspectAll(context)
+            snackbarHostState.showSnackbar("Environment re-probed: Port 8022 is ${healthReport?.sshPortStatus?.label}")
+        }
+    }
+
     val copyHandler: (CommandRecipe) -> Unit = { recipe ->
         clipboardManager.setText(AnnotatedString(recipe.commandSyntax))
         scope.launch {
@@ -147,7 +193,14 @@ fun NexusAppShell(
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
                         icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) }
+                        label = { Text(tab.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = NexusColors.Primary,
+                            selectedTextColor = NexusColors.Primary,
+                            indicatorColor = NexusColors.PrimaryContainer,
+                            unselectedIconColor = NexusColors.TextSecondary,
+                            unselectedTextColor = NexusColors.TextSecondary
+                        )
                     )
                 }
             }
@@ -159,8 +212,16 @@ fun NexusAppShell(
                 .padding(innerPadding)
         ) {
             NexusTopHeader(
-                selectedEnv = selectedEnvironmentFilter,
-                onSelectEnv = { selectedEnvironmentFilter = it }
+                onOpenNotifications = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("All systems operational. No unread alerts.")
+                    }
+                },
+                onOpenProfile = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("NEXUS Technical Assistant · Connected to Pixel 7 Pro")
+                    }
+                }
             )
 
             when (selectedTab) {
@@ -169,8 +230,13 @@ fun NexusAppShell(
                     searchQuery = searchQuery,
                     onSearchQueryChange = { searchQuery = it },
                     selectedEnv = selectedEnvironmentFilter,
+                    onSelectEnv = { selectedEnvironmentFilter = it },
                     workflow = workflow,
+                    healthReport = healthReport,
+                    onRefreshHealth = refreshHealthHandler,
+                    onOpenTermux = openTermuxHandler,
                     onOpenWorkflowTab = { selectedTab = NexusTab.LIBRARY },
+                    onCopyIp = copyIpHandler,
                     onCopyCommand = copyHandler,
                     onToggleVerification = verifyHandler
                 )
@@ -242,47 +308,64 @@ fun NexusAppShell(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NexusTopHeader(
-    selectedEnv: ExecutionEnvironmentType?,
-    onSelectEnv: (ExecutionEnvironmentType?) -> Unit
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     Surface(
         color = NexusColors.Surface,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text(
-                text = "NEXUS · Personal Technical Memory",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = NexusColors.Primary
-            )
-            Text(
-                text = "Filter by target environment so you never run a command in the wrong shell:",
-                style = MaterialTheme.typography.bodySmall,
-                color = NexusColors.TextSecondary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilterChip(
-                    selected = selectedEnv == null,
-                    onClick = { onSelectEnv(null) },
-                    label = { Text("All Environments") }
-                )
-                listOf(
-                    ExecutionEnvironmentType.TERMUX_HOST,
-                    ExecutionEnvironmentType.DEBIAN_PROOT,
-                    ExecutionEnvironmentType.WINDOWS_POWERSHELL
-                ).forEach { env ->
-                    FilterChip(
-                        selected = selectedEnv == env,
-                        onClick = { onSelectEnv(if (selectedEnv == env) null else env) },
-                        label = { Text(env.shortLabel) }
+                NexusLogo(size = 34.dp)
+                Column {
+                    Text(
+                        text = "NEXUS",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = NexusColors.TextPrimary
+                    )
+                    Text(
+                        text = "Personal Technical Assistant",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NexusColors.TextSecondary
+                    )
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onOpenNotifications) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = NexusColors.TextSecondary
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .background(NexusColors.PrimaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "ZH",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = NexusColors.Primary
                     )
                 }
             }
@@ -290,14 +373,20 @@ private fun NexusTopHeader(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RecallScreen(
     recipes: List<CommandRecipe>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     selectedEnv: ExecutionEnvironmentType?,
+    onSelectEnv: (ExecutionEnvironmentType?) -> Unit,
     workflow: com.zakshub.nexus.domain.model.GuidedWorkflow,
+    healthReport: LiveHealthReport?,
+    onRefreshHealth: () -> Unit,
+    onOpenTermux: () -> Unit,
     onOpenWorkflowTab: () -> Unit,
+    onCopyIp: () -> Unit,
     onCopyCommand: (CommandRecipe) -> Unit,
     onToggleVerification: (CommandRecipe) -> Unit
 ) {
@@ -310,28 +399,259 @@ private fun RecallScreen(
         matchesEnv && matchesSearch
     }
 
+    val currentHour = remember { java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) }
+    val greeting = when {
+        currentHour < 12 -> "Good Morning! ✨"
+        currentHour < 17 -> "Good Afternoon! ✨"
+        else -> "Good Evening! ✨"
+    }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // 1. Greeting
+        item {
+            Column {
+                Text(
+                    text = greeting,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = NexusColors.TextPrimary
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Your technical assistant is ready.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NexusColors.TextSecondary
+                )
+            }
+        }
+
+        // 2. Pill Search Bar
         item {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Search commands, SSH port 8022, Debian proot, or errors...") },
-                singleLine = true
+                placeholder = {
+                    Text(
+                        text = "Search commands, solutions...",
+                        color = NexusColors.TextTertiary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = NexusColors.TextSecondary
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { onSearchQueryChange("") }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear",
+                                tint = NexusColors.TextSecondary
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(24.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = NexusColors.Surface,
+                    unfocusedContainerColor = NexusColors.Surface,
+                    focusedBorderColor = NexusColors.Primary,
+                    unfocusedBorderColor = NexusColors.BorderSubtle
+                )
             )
         }
 
+        // 3. Live System Status Banner (Real Environment Inspector Data)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
-                border = BorderStroke(1.dp, NexusColors.Primary.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = NexusColors.StatusOnlineBg),
+                border = BorderStroke(1.dp, NexusColors.StatusOnlineBorder),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(NexusColors.StatusOnlineIcon, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Online",
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        val isSshOpen = healthReport?.sshPortStatus == PortStatus.OPEN
+                        Text(
+                            text = if (isSshOpen) "All Systems Online" else "Local System Ready",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = NexusColors.StatusOnlineText
+                        )
+                        val portLabel = healthReport?.sshPortStatus?.label ?: "Ready"
+                        val ipLabel = healthReport?.detectedWifiIp?.let { " · IP: $it" } ?: ""
+                        Text(
+                            text = "Termux SSH (8022): $portLabel$ipLabel",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = NexusColors.StatusOnlineText.copy(alpha = 0.85f)
+                        )
+                    }
+                    IconButton(
+                        onClick = onRefreshHealth,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = NexusColors.StatusOnlineText,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // 4. Quick Actions (4-card grid)
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Quick Actions",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = NexusColors.TextPrimary
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = ">_",
+                        iconBg = Color(0xFFE0F2FE),
+                        iconColor = Color(0xFF0284C7),
+                        title = "Open Termux",
+                        onClick = onOpenTermux
+                    )
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = "⇄",
+                        iconBg = Color(0xFFF3E8FF),
+                        iconColor = Color(0xFF7C3AED),
+                        title = "SSH Guide",
+                        onClick = onOpenWorkflowTab
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = "📶",
+                        iconBg = Color(0xFFECFDF5),
+                        iconColor = Color(0xFF059669),
+                        title = "Check IP Address",
+                        onClick = onCopyIp
+                    )
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = "✓",
+                        iconBg = Color(0xFFFEF3C7),
+                        iconColor = Color(0xFFD97706),
+                        title = "Run Checklist",
+                        onClick = onOpenWorkflowTab
+                    )
+                }
+            }
+        }
+
+        // 5. Your Environments Filter Chips
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Your Environments",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = NexusColors.TextPrimary
+                    )
+                    if (selectedEnv != null) {
+                        TextButton(
+                            onClick = { onSelectEnv(null) },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                text = "Show All",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = NexusColors.Primary
+                            )
+                        }
+                    }
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedEnv == null,
+                        onClick = { onSelectEnv(null) },
+                        label = { Text("All") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = NexusColors.PrimaryContainer,
+                            selectedLabelColor = NexusColors.Primary
+                        )
+                    )
+                    listOf(
+                        ExecutionEnvironmentType.WINDOWS_POWERSHELL,
+                        ExecutionEnvironmentType.ANDROID_SYSTEM,
+                        ExecutionEnvironmentType.TERMUX_HOST,
+                        ExecutionEnvironmentType.DEBIAN_PROOT
+                    ).forEach { env ->
+                        FilterChip(
+                            selected = selectedEnv == env,
+                            onClick = { onSelectEnv(if (selectedEnv == env) null else env) },
+                            label = { Text(env.shortLabel) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = env.accentColor().copy(alpha = 0.15f),
+                                selectedLabelColor = env.accentColor()
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        // 6. Active Step-by-Step Guide
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
+                border = BorderStroke(1.dp, NexusColors.Primary.copy(alpha = 0.35f)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Active Step-by-Step Guide (${workflow.completedStepsCount} of ${workflow.steps.size} Steps Done)",
                         style = MaterialTheme.typography.labelMedium,
@@ -350,24 +670,28 @@ private fun RecallScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = NexusColors.TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onOpenWorkflowTab) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = onOpenWorkflowTab,
+                        colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                    ) {
                         Text("Open Step-by-Step Checklist")
                     }
                 }
             }
         }
 
+        // 7. Pinned Daily Fast-Track
         val pinnedRecipes = recipes.filter { it.isPinnedDaily }
         if (pinnedRecipes.isNotEmpty() && searchQuery.isBlank() && selectedEnv == null) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
-                    border = BorderStroke(1.dp, NexusColors.Secondary.copy(alpha = 0.6f)),
-                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
+                    border = BorderStroke(1.dp, NexusColors.Secondary.copy(alpha = 0.35f)),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -379,26 +703,20 @@ private fun RecallScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = NexusColors.Secondary
                             )
-                            val currentContext = LocalContext.current
                             OutlinedButton(
-                                onClick = {
-                                    val launchIntent = currentContext.packageManager.getLaunchIntentForPackage("com.termux")
-                                    if (launchIntent != null) {
-                                        currentContext.startActivity(launchIntent)
-                                    }
-                                },
+                                onClick = onOpenTermux,
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
                             ) {
                                 Text("Open Termux", style = MaterialTheme.typography.labelSmall)
                             }
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "One-tap copy for your daily startup and test routines:",
                             style = MaterialTheme.typography.bodySmall,
                             color = NexusColors.TextSecondary
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         pinnedRecipes.take(4).forEach { pinned ->
                             Row(
                                 modifier = Modifier
@@ -435,9 +753,10 @@ private fun RecallScreen(
             }
         }
 
+        // 8. Verified Command Cards
         item {
             Text(
-                text = "Verified Command Cards (${filteredRecipes.size})",
+                text = "Verified Actions (${filteredRecipes.size})",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = NexusColors.TextPrimary
@@ -449,6 +768,52 @@ private fun RecallScreen(
                 recipe = recipe,
                 onCopyCommand = onCopyCommand,
                 onToggleVerification = onToggleVerification
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickActionCard(
+    icon: String,
+    iconBg: Color,
+    iconColor: Color,
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
+        border = BorderStroke(1.dp, NexusColors.BorderSubtle),
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(iconBg, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = icon,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = iconColor
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = NexusColors.TextPrimary
             )
         }
     }

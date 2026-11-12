@@ -133,7 +133,7 @@ fun ExecutionContextCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF070A10), RoundedCornerShape(10.dp))
+                    .background(NexusColors.TerminalBg, RoundedCornerShape(10.dp))
                     .padding(12.dp)
             ) {
                 Text(
@@ -141,7 +141,7 @@ fun ExecutionContextCard(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = NexusColors.Primary
+                    color = NexusColors.TerminalText
                 )
             }
 

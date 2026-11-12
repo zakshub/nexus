@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current status:** Phase 0–5 & Phase 8 (`100%` completed). Release `v0.10.0` packaged with Phase 5 Live Environment Inspector, localhost SSH probing, Wi-Fi IP auto-detection, and 26 passing unit tests.
+**Current status:** Phase 0–5 & Phase 8 (`100%` completed). Release `v0.11.0` packaged with 2026 Light-First UI Refinement (Style 1), official folded ribbon logo, genuine loading state, refined Recall Home Dashboard with Quick Actions grid, live port probing, and 26 passing unit tests.
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |

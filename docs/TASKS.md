@@ -81,6 +81,9 @@
 | **T8.2** | M8.1 | End-to-end Vault Backup & Restore verification | Verification of JSON & Markdown export/import routines with Secret Guard scanner | 0.5h | 0.2h | T8.1 | **Completed** | Full round-trip tested; blocks leaked SSH keys/tokens; restores recipes & cases |
 | **T8.3** | M8.1 | Write 5-minute Owner Playbook | `docs/OWNER_PLAYBOOK.md` detailing Pixel 7 Pro APK installation, daily 4-tab usage, and SSH cheat-sheet | 1.0h | 0.3h | T8.2 | **Completed** | Plain-English non-technical guide published in `docs/OWNER_PLAYBOOK.md` |
 | **T8.4** | M8.1 | Final Acceptance & Documentation sync | Update `README.md`, `ROADMAP.md`, `MILESTONES.md`, and push to GitHub | 0.5h | 0.1h | T8.3 | **Completed** | 26/26 unit tests pass, pushed to `main` |
+| **T8.5** | M8.2 | Official NEXUS Ribbon Logo & 2026 Light Color System | `NexusLogo.kt` composable, `NexusColors` in `NexusTheme.kt` with light-first slate/white/emerald/sky palette | 1.0h | 0.3h | T8.4 | **Completed** | Clean folded ribbon logo, high-contrast light colors matching Style 1 (`image.png`) |
+| **T8.6** | M8.2 | Redesign Splash Screen & Genuine Loading Experience | `SplashScreen.kt`, wire real Room & environment probe in `MainActivity.kt` with crossfade | 1.0h | 0.3h | T8.5 | **Completed** | Genuine initialization stages only, zero artificial delays, seamless transition |
+| **T8.7** | M8.2 | Refine Recall Home Dashboard & Quick Actions Grid | Refined `RecallScreen` in `NexusAppShell.kt` with greeting, pill search, live status banner, 4 quick actions, environment chips | 1.5h | 0.4h | T8.6 | **Completed** | Preserved all existing functionality; 26/26 unit tests passing; built `nexus-v0.11.0.apk` |
 
 ### Post-MVP Optional Work (Phases 6, 7 & 9)
 - **Phase 6 (`M6.1`):** Add typed allowlisted operations, per-action approval modal, execution timeouts, output limits, and audit verification.

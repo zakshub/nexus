@@ -1,7 +1,7 @@
 package com.zakshub.nexus.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.zakshub.nexus.domain.model.ExecutionEnvironmentType
@@ -9,24 +9,38 @@ import com.zakshub.nexus.domain.model.ImpactLevel
 import com.zakshub.nexus.domain.model.VerificationStatus
 
 object NexusColors {
-    val Background = Color(0xFF0B0F17)
-    val Surface = Color(0xFF131B2E)
-    val SurfaceElevated = Color(0xFF1B253D)
-    val Primary = Color(0xFF4FD1C5)
-    val Secondary = Color(0xFF63B3ED)
-    val TextPrimary = Color(0xFFF7FAFC)
-    val TextSecondary = Color(0xFFA0AEC0)
+    // 2026 Light-First Color System
+    val Background = Color(0xFFF8FAFC)        // Crisp light off-white (Slate 50)
+    val Surface = Color(0xFFFFFFFF)           // Clean card white
+    val SurfaceElevated = Color(0xFFF1F5F9)   // Subtle container / input field fill (Slate 100)
+    val Primary = Color(0xFF1A73E8)           // Vibrant Brand Blue
+    val PrimaryContainer = Color(0xFFE8F0FE)  // Soft Blue tint for active pills
+    val Secondary = Color(0xFF4F46E5)         // Rich Indigo
+    val TextPrimary = Color(0xFF0F172A)       // High contrast deep slate (Slate 900)
+    val TextSecondary = Color(0xFF64748B)     // Refined secondary text (Slate 500)
+    val TextTertiary = Color(0xFF94A3B8)      // Subtle caption text (Slate 400)
+    val BorderSubtle = Color(0xFFE2E8F0)      // Crisp light border (Slate 200)
+
+    // Status Banner Colors (All Systems Online)
+    val StatusOnlineBg = Color(0xFFECFDF5)    // Emerald 50
+    val StatusOnlineBorder = Color(0xFFA7F3D0)// Emerald 200
+    val StatusOnlineText = Color(0xFF065F46)  // Emerald 800
+    val StatusOnlineIcon = Color(0xFF10B981)  // Emerald 500
 
     // Distinct Environment Accent Colors (Never merge Termux and Debian proot)
-    val EnvTermuxGreen = Color(0xFF10B981)
-    val EnvDebianPurple = Color(0xFFA855F7)
-    val EnvWindowsBlue = Color(0xFF3B82F6)
-    val EnvAndroidSlate = Color(0xFF94A3B8)
+    val EnvTermuxGreen = Color(0xFF059669)    // Rich Emerald
+    val EnvDebianPurple = Color(0xFF7C3AED)   // Modern Violet
+    val EnvWindowsBlue = Color(0xFF2563EB)    // Vibrant Blue
+    val EnvAndroidSlate = Color(0xFF475569)   // Sophisticated Slate
 
     // Safety / Impact Accent Colors
-    val ImpactSafeGreen = Color(0xFF22C55E)
-    val ImpactConfigAmber = Color(0xFFF59E0B)
-    val ImpactCautionRed = Color(0xFFEF4444)
+    val ImpactSafeGreen = Color(0xFF16A34A)   // Green 600
+    val ImpactConfigAmber = Color(0xFFD97706) // Amber 600
+    val ImpactCautionRed = Color(0xFFDC2626)  // Red 600
+
+    // Code block container (Crisp terminal block)
+    val TerminalBg = Color(0xFF0F172A)        // Deep slate for code blocks
+    val TerminalText = Color(0xFF38BDF8)      // Sky blue syntax highlight
 }
 
 fun ExecutionEnvironmentType.accentColor(): Color = when (this) {
@@ -48,22 +62,26 @@ fun VerificationStatus.accentColor(): Color = when (this) {
     VerificationStatus.AI_SUGGESTED -> NexusColors.EnvDebianPurple
 }
 
-private val NexusDarkColorScheme = darkColorScheme(
+private val NexusLightColorScheme = lightColorScheme(
     primary = NexusColors.Primary,
+    onPrimary = Color.White,
+    primaryContainer = NexusColors.PrimaryContainer,
+    onPrimaryContainer = NexusColors.Primary,
     secondary = NexusColors.Secondary,
+    onSecondary = Color.White,
     background = NexusColors.Background,
-    surface = NexusColors.Surface,
-    surfaceVariant = NexusColors.SurfaceElevated,
-    onPrimary = Color(0xFF042F2E),
     onBackground = NexusColors.TextPrimary,
+    surface = NexusColors.Surface,
     onSurface = NexusColors.TextPrimary,
-    onSurfaceVariant = NexusColors.TextSecondary
+    surfaceVariant = NexusColors.SurfaceElevated,
+    onSurfaceVariant = NexusColors.TextSecondary,
+    outline = NexusColors.BorderSubtle
 )
 
 @Composable
 fun NexusTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = NexusDarkColorScheme,
+        colorScheme = NexusLightColorScheme,
         content = content
     )
 }

@@ -24,4 +24,4 @@ secrets.properties
 .DS_Store
 Thumbs.db
 *.apk
-!release/nexus-v0.10.0.apk
+!release/nexus-v0.11.0.apk
