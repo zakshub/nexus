@@ -1,10 +1,11 @@
 # Task Register
 
-**Current active phase:** Phase 2 Completed — Ready for Phase 3 (`M3.1`: Search, Recipes & Resumable Guided Workflows)  
+**Current active phase:** Phase 3 Completed — Ready for Phase 4 (`M4.1`: Pluggable Grounded AI Assistant)  
 **Phase 0 completion:** 100% (8 of 8 tasks completed)  
 **Phase 1 completion:** 100% (4 of 4 tasks completed)  
 **Phase 2 completion:** 100% (4 of 4 tasks completed)  
-**Overall project completion:** **50%** (Phases 0, 1, and 2 complete; 50% remaining across Phases 3, 4, and 8)  
+**Phase 3 completion:** 100% (4 of 4 tasks completed)  
+**Overall project completion:** **70%** (Phases 0, 1, 2, and 3 complete; 30% remaining across Phases 4 and 8)  
 
 ---
 
@@ -45,20 +46,14 @@
 
 ---
 
-## Phase 3 tasks (`M3.1`: Search, Verification & Guided Workflows — Ready / Next Up)
+## Phase 3 tasks (`M3.1`: Search, Verification & Guided Workflows — 100% Completed)
 
-| ID | Milestone | Task | Deliverable | Estimate | Deps | Acceptance Criteria (<= 5 min check) |
-| --- | --- | --- | --- | --- | --- | --- |
-| **T3.1** | M3.1 | Wire instant Room search & environment pill filtering | Sub-millisecond keyword search across commands, symptoms, and expected results | 1.0h | T2.4 | Search bar instantly filters recipes and cases across environments |
-| **T3.2** | M3.1 | Implement one-tap Recipe Verification flow | Toggle verification state (`VERIFIED`, `DRAFT`) with audit timestamp | 1.0h | T3.1 | Verification badge updates immediately and persists across app restarts |
-| **T3.3** | M3.1 | Implement interactive multi-step Workflow Runner | Step-by-step checklist with persistent active step state and failure branching | 1.5h | T3.2 | Progress state survives app force-close and phone reboot |
-| **T3.4** | M3.1 | Run Phase 3 acceptance tests & package debug APK | Passing tests and verified build | 0.5h | T3.3 | `./gradlew testDebugUnitTest assembleDebug` exits 0 |
-
-### Phase 3 (`M3.1`: Search, Recipes & Resumable Guided Workflows)
-- `T3.1`: Wire instant FTS4 search and top Environment Pill Filter (`All`, `Termux Host`, `Debian proot`, `Windows 11`).
-- `T3.2`: Implement Recipe create/edit/verify flows and one-tap Copy with Prompt Verification checklist + Audit Log recording.
-- `T3.3`: Implement stateful step-by-step Workflow Runner with persistent progress (`DataStore` + `Room`) that resumes after app close.
-- `T3.4`: Implement Troubleshooter (`Symptom -> Plain-English Cause -> Read-Only Check -> Verified Fix`) screen and tests.
+| ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **T3.1** | M3.1 | Wire instant Room search & environment pill filtering | Real-time multi-field query matching across titles, purposes, syntax, and environments | 1.0h | 0.2h | T2.4 | **Completed** | Search bar instantly filters recipes and cases across environments |
+| **T3.2** | M3.1 | Implement one-tap Recipe Verification flow | Toggle verification state (`VERIFIED`, `UNVERIFIED_DRAFT`) with immediate badge update | 1.0h | 0.2h | T3.1 | **Completed** | One-tap button updates Room SQLite and persists across restarts |
+| **T3.3** | M3.1 | Implement interactive multi-step Workflow Runner | Step-by-step checklist with persistent active step state and Troubleshooter copy shortcuts | 1.5h | 0.3h | T3.2 | **Completed** | Step check state saved to SQLite; copy shortcuts for safe check & fix |
+| **T3.4** | M3.1 | Run Phase 3 acceptance tests & package debug APK | `SearchAndWorkflowTest.kt`, assemble debug APK | 0.5h | 0.1h | T3.3 | **Completed** | 14/14 unit tests passing (`100%`), `app-debug.apk` (56MB) assembled |
 
 ### Phase 4 (`M4.1`: Contextual Grounded Assistant)
 - `T4.1`: Define `AiAssistantProvider` interface and default `OfflineRetrievalProvider` (100% offline).

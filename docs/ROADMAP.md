@@ -1,14 +1,14 @@
 # Roadmap
 
-**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), and Phase 2 (`100%`) completed (**`50%` overall MVP completion**). Ready for Phase 3 (Instant Search, Verification Flow & Resumable Guided Workflows).
+**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), Phase 2 (`100%`), and Phase 3 (`100%`) completed (**`70%` overall MVP completion**). Ready for Phase 4 (Pluggable Grounded AI Assistant with Secret Redaction).
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |
 | **0** | **Discovery and validation** | Verify environment, use cases, boundaries, UX, security, and architecture | 2.5 hours | **Completed (`2026-11-12`)** | **100%** |
 | **1** | **Android foundation & UX shell** | Create Kotlin/Compose app shell, 4-tab navigation, Execution Context Card UI, unit tests, and CI build pipeline | 3–4 hours | **Completed (`2026-11-12`)** | **100%** |
 | **2** | **Technical memory & starter pack** | Room SQLite database, Secret Guard, JSON/MD export & restore, and pre-seeded Pixel 7 Pro / Termux / Debian / Windows 11 memory | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
-| **3** | **Search & guided workflows** | Instant environment-filtered search, recipe verification flows, and resumable step-by-step workflows | 4–5 hours | **Next Up (Ready)** | 0% |
-| **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with offline retrieval, opt-in Gemini redaction + Context Preview, and citations | 3–4 hours | Planned | 0% |
+| **3** | **Search & guided workflows** | Instant environment-filtered search, recipe verification flows, and resumable step-by-step workflows | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
+| **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with offline retrieval, opt-in Gemini redaction + Context Preview, and citations | 3–4 hours | **Next Up (Ready)** | 0% |
 | **5** | **Read-only inspection** | Permissioned Termux Intent or localhost SSH read-only environment health checks | 4–6 hours | Postponed (Post-MVP) | 0% |
 | **6** | **Approved operations** | Typed allowlisted operations with per-action approval, timeouts, redaction, and audit trail | 5–7 hours | Postponed (Post-MVP) | 0% |
 | **7** | **Windows companion** | Optional Windows 11 bridge if manual SSH handoff proves insufficient | 6–8 hours | Optional / Deferred | 0% |

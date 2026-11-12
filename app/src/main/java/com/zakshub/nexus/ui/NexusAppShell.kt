@@ -162,7 +162,8 @@ fun NexusAppShell(
                     selectedEnv = selectedEnvironmentFilter,
                     workflow = workflow,
                     onOpenWorkflowTab = { selectedTab = NexusTab.LIBRARY },
-                    onCopyCommand = copyHandler
+                    onCopyCommand = copyHandler,
+                    onToggleVerification = verifyHandler
                 )
                 NexusTab.LIBRARY -> LibraryScreen(
                     recipes = recipes,
@@ -179,11 +180,18 @@ fun NexusAppShell(
                             snackbarHostState.showSnackbar("Saved new recipe to Memory Vault!")
                         }
                     },
-                    onCopyCommand = copyHandler
+                    onCopyCommand = copyHandler,
+                    onToggleVerification = verifyHandler
                 )
                 NexusTab.TROUBLESHOOT -> TroubleshootScreen(
                     cases = cases,
-                    selectedEnv = selectedEnvironmentFilter
+                    selectedEnv = selectedEnvironmentFilter,
+                    onCopyCommand = { cmd, label ->
+                        clipboardManager.setText(AnnotatedString(cmd))
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Copied $label: $cmd")
+                        }
+                    }
                 )
                 NexusTab.SYSTEMS -> SystemsScreen(
                     environments = environments,
@@ -280,7 +288,8 @@ private fun RecallScreen(
     selectedEnv: ExecutionEnvironmentType?,
     workflow: com.zakshub.nexus.domain.model.GuidedWorkflow,
     onOpenWorkflowTab: () -> Unit,
-    onCopyCommand: (CommandRecipe) -> Unit
+    onCopyCommand: (CommandRecipe) -> Unit,
+    onToggleVerification: (CommandRecipe) -> Unit
 ) {
     val filteredRecipes = recipes.filter { recipe ->
         val matchesEnv = selectedEnv == null || recipe.environmentType == selectedEnv
@@ -351,7 +360,8 @@ private fun RecallScreen(
         items(filteredRecipes, key = { it.id }) { recipe ->
             ExecutionContextCard(
                 recipe = recipe,
-                onCopyCommand = onCopyCommand
+                onCopyCommand = onCopyCommand,
+                onToggleVerification = onToggleVerification
             )
         }
     }
@@ -364,7 +374,8 @@ private fun LibraryScreen(
     workflow: com.zakshub.nexus.domain.model.GuidedWorkflow,
     onToggleStep: (Int, Boolean) -> Unit,
     onAddRecipe: (CommandRecipe) -> Unit,
-    onCopyCommand: (CommandRecipe) -> Unit
+    onCopyCommand: (CommandRecipe) -> Unit,
+    onToggleVerification: (CommandRecipe) -> Unit
 ) {
     var showAddRecipeDialog by remember { mutableStateOf(false) }
     var newTitle by remember { mutableStateOf("") }
@@ -561,7 +572,8 @@ private fun LibraryScreen(
         items(filteredRecipes, key = { it.id }) { recipe ->
             ExecutionContextCard(
                 recipe = recipe,
-                onCopyCommand = onCopyCommand
+                onCopyCommand = onCopyCommand,
+                onToggleVerification = onToggleVerification
             )
         }
     }
@@ -570,7 +582,8 @@ private fun LibraryScreen(
 @Composable
 private fun TroubleshootScreen(
     cases: List<com.zakshub.nexus.domain.model.TroubleshootingCase>,
-    selectedEnv: ExecutionEnvironmentType?
+    selectedEnv: ExecutionEnvironmentType?,
+    onCopyCommand: (String, String) -> Unit = { _, _ -> }
 ) {
     val filteredCases = cases.filter {
         selectedEnv == null || it.environmentType == selectedEnv
@@ -627,18 +640,48 @@ private fun TroubleshootScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = NexusColors.TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "1. Safe Read-Only Check: `${item.safeReadOnlyCheckCommand}`",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = NexusColors.ImpactSafeGreen
-                    )
-                    Text(
-                        text = "2. Verified Fix Command: `${item.verifiedFixCommand}`",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = NexusColors.Primary
-                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "1. Safe Check: `${item.safeReadOnlyCheckCommand}`",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = NexusColors.ImpactSafeGreen
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = { onCopyCommand(item.safeReadOnlyCheckCommand, "Safe Check") },
+                            modifier = Modifier.padding(start = 6.dp)
+                        ) {
+                            Text("Copy Check", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "2. Verified Fix: `${item.verifiedFixCommand}`",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.Primary
+                            )
+                        }
+                        Button(
+                            onClick = { onCopyCommand(item.verifiedFixCommand, "Fix Command") },
+                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary),
+                            modifier = Modifier.padding(start = 6.dp)
+                        ) {
+                            Text("Copy Fix", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
                 }
             }
         }

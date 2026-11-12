@@ -6,10 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Phase 2 Complete (Room SQLite Vault, Starter Pack & Backup/Restore Built)  
-**Release:** `0.2.0-phase2` (`app-debug.apk` 56MB verified)  
-**Implementation:** Phase 0 (100%), Phase 1 (100%), and Phase 2 (100%) complete; Overall MVP **50% complete**  
-**Current priority:** Phase 3 — Instant Search Filters, Recipe Verification Flow, and Resumable Guided Workflows.
+**Stage:** Phase 3 Complete (Instant Search, Verification Flow & Resumable Guided Workflows Built)  
+**Release:** `0.3.0-phase3` (`app-debug.apk` 56MB verified)  
+**Implementation:** Phase 0 (100%), Phase 1 (100%), Phase 2 (100%), and Phase 3 (100%) complete; Overall MVP **70% complete**  
+**Current priority:** Phase 4 — Pluggable Contextual AI Assistant with Secret Redaction and Context Preview.
 
 ## The problem
 

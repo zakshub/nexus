@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zakshub.nexus.domain.model.CommandRecipe
+import com.zakshub.nexus.domain.model.VerificationStatus
 import com.zakshub.nexus.ui.theme.NexusColors
 import com.zakshub.nexus.ui.theme.accentColor
 
@@ -53,6 +54,7 @@ import com.zakshub.nexus.ui.theme.accentColor
 fun ExecutionContextCard(
     recipe: CommandRecipe,
     onCopyCommand: (CommandRecipe) -> Unit,
+    onToggleVerification: ((CommandRecipe) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showFlagBreakdown by remember { mutableStateOf(false) }
@@ -218,9 +220,20 @@ fun ExecutionContextCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "Copy Command (${recipe.environmentType.shortLabel})",
+                        text = "Copy (${recipe.environmentType.shortLabel})",
                         fontWeight = FontWeight.Bold
                     )
+                }
+
+                onToggleVerification?.let { onToggle ->
+                    OutlinedButton(
+                        onClick = { onToggle(recipe) }
+                    ) {
+                        Text(
+                            text = if (recipe.verificationStatus == VerificationStatus.VERIFIED) "Unverify" else "Mark Verified",
+                            color = if (recipe.verificationStatus == VerificationStatus.VERIFIED) NexusColors.ImpactSafeGreen else NexusColors.TextPrimary
+                        )
+                    }
                 }
 
                 if (recipe.parameters.isNotEmpty()) {
@@ -228,7 +241,7 @@ fun ExecutionContextCard(
                         onClick = { showFlagBreakdown = !showFlagBreakdown }
                     ) {
                         Text(
-                            text = if (showFlagBreakdown) "Hide Meaning" else "Explain Parts",
+                            text = if (showFlagBreakdown) "Hide" else "Explain",
                             color = NexusColors.TextPrimary
                         )
                     }
