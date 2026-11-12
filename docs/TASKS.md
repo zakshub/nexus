@@ -1,13 +1,14 @@
 # Task Register
 
-**Current active phase:** Phase 1 Completed — Ready for Phase 2 (`M2.1`: Technical Memory Vault & Backup)  
+**Current active phase:** Phase 2 Completed — Ready for Phase 3 (`M3.1`: Search, Recipes & Resumable Guided Workflows)  
 **Phase 0 completion:** 100% (8 of 8 tasks completed)  
 **Phase 1 completion:** 100% (4 of 4 tasks completed)  
-**Overall project completion:** **30%** (Phases 0 and 1 complete; 70% remaining across Phases 2, 3, 4, and 8)  
+**Phase 2 completion:** 100% (4 of 4 tasks completed)  
+**Overall project completion:** **50%** (Phases 0, 1, and 2 complete; 50% remaining across Phases 3, 4, and 8)  
 
 ---
 
-## Phase 0 tasks (`M0.1` – `M0.5`)
+## Phase 0 tasks (`M0.1` – `M0.5`: 100% Completed)
 
 | ID | Milestone | Task | Deliverable | Owner | Estimate | Actual | Deps | Status | Evidence & Test Result | Risk & Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -16,7 +17,7 @@
 | **T0.3** | M0.3 | Audit Android, Termux, and Debian `proot` boundaries | 4-environment boundary map and sandbox analysis | Engineer / Security | 1–2h | 0.3h | T0.2 | **Completed** | Documented UID/SELinux isolation and `pkg` vs `apt` rules in [docs/DISCOVERY.md](DISCOVERY.md) §3.1–3.2 | Enforced in `ExecutionEnvironmentType` |
 | **T0.4** | M0.3 | Map SSH connection and network requirements | Windows -> Termux `sshd` (`8022`) flow and sleep/IP/Doze failure modes | Engineer | 1h | 0.2h | T0.3 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §3.3–3.4 | Seeded in starter workflows |
 | **T0.5** | M0.4 | Compare app architecture options | Evidence-based comparison table (Kotlin/Compose vs cross-platform vs companion daemons) | Architect | 1–2h | 0.3h | T0.1–T0.4 | **Completed** | Documented in [docs/DISCOVERY.md](DISCOVERY.md) §4 and `ADR 0004`–`0008` in [docs/DECISIONS.md](DECISIONS.md) | Native Kotlin + Compose built |
-| **T0.6** | M0.4 | Define data model, UX IA, and security boundaries | Room schema, 4-tab UX IA, Execution Context Card spec, Secret Guard rules | Architect / UX / Security | 1–2h | 0.3h | T0.5 | **Completed** | Updated [docs/ARCHITECTURE.md](ARCHITECTURE.md), [docs/SECURITY.md](SECURITY.md), and `ADR 0009` | Implemented in Phase 1 |
+| **T0.6** | M0.4 | Define data model, UX IA, and security boundaries | Room schema, 4-tab UX IA, Execution Context Card spec, Secret Guard rules | Architect / UX / Security | 1–2h | 0.3h | T0.5 | **Completed** | Updated [docs/ARCHITECTURE.md](ARCHITECTURE.md), [docs/SECURITY.md](SECURITY.md), and `ADR 0009` | Implemented in Phase 1 & 2 |
 | **T0.7** | M0.4 | Recommend MVP and Phase 1 scope | Complete Phase 0 Final Report & updated roadmap/milestones/tasks | Delivery Mgr | 1h | 0.2h | T0.1–T0.6 | **Completed** | Updated [docs/DISCOVERY.md](DISCOVERY.md) §6, [docs/ROADMAP.md](ROADMAP.md), [docs/MILESTONES.md](MILESTONES.md) | Completed |
 | **T0.8** | M0.5 | Owner review and approval | Recorded owner decision unlocking Phase 1 | **Owner** | ~5 min | 0.1h | T0.7 | **Completed** | Owner approved Phase 0 and authorized Phase 1 (`2026-11-12`) | Unlocked Phase 1 |
 
@@ -33,13 +34,25 @@
 
 ---
 
-## Future task groups (Phases 2 to 9)
+## Phase 2 tasks (`M2.1`: Technical Memory Schema & Starter Pack — 100% Completed)
 
-### Phase 2 (`M2.1`: Technical Memory & Starter Pack)
-- `T2.1`: Define Room database (`NexusDatabase`), entities, FTS4 virtual table (`RecipeFtsEntity`), and DAOs.
-- `T2.2`: Pre-seed curated starter knowledge base for Windows 11, Pixel 7 Pro, Termux (`sshd` on port `8022`, `termux-wake-lock`, `pkg`), and Debian `proot` (`proot-distro login debian`, `apt`).
-- `T2.3`: Implement SAF JSON + Markdown knowledge base export and import with `SecretGuardValidator` enforcement.
-- `T2.4`: Run DAO, FTS4 search, and export/import unit tests.
+| ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **T2.1** | M2.1 | Define Room SQLite database and DAOs | `NexusDatabase.kt`, `NexusEntities.kt` (devices, environments, recipes, cases, workflows), `NexusDaos.kt` | 1.0h | 0.3h | T1.4 | **Completed** | KSP compiled Room DAOs with reactive Kotlin Coroutine Flows |
+| **T2.2** | M2.1 | Pre-seed starter knowledge into Room vault | Auto-seeding callback in `NexusDatabase` loading Pixel 7 Pro, Windows 11, Termux, Debian proot | 1.0h | 0.3h | T2.1 | **Completed** | Pre-seeded on first run; verified by `StarterKnowledgeCatalog` catalog tests |
+| **T2.3** | M2.1 | Build Backup & Restore Manager with Secret Guard | `NexusBackupManager.kt` supporting full JSON and Markdown exports and SecretGuard-enforced imports | 1.0h | 0.2h | T2.2 | **Completed** | Unit tests verify JSON round-trip and blocking of leaked SSH keys / tokens |
+| **T2.4** | M2.1 | Wire Repository, Add-Recipe UI, and run Phase 2 verification | `NexusRepository.kt`, updated `NexusAppShell.kt`, `RoomAndBackupTest.kt`, assembled `app-debug.apk` | 1.0h | 0.2h | T2.3 | **Completed** | 9/9 unit tests passing (`100%`), `app-debug.apk` (56MB) assembled |
+
+---
+
+## Phase 3 tasks (`M3.1`: Search, Verification & Guided Workflows — Ready / Next Up)
+
+| ID | Milestone | Task | Deliverable | Estimate | Deps | Acceptance Criteria (<= 5 min check) |
+| --- | --- | --- | --- | --- | --- | --- |
+| **T3.1** | M3.1 | Wire instant Room search & environment pill filtering | Sub-millisecond keyword search across commands, symptoms, and expected results | 1.0h | T2.4 | Search bar instantly filters recipes and cases across environments |
+| **T3.2** | M3.1 | Implement one-tap Recipe Verification flow | Toggle verification state (`VERIFIED`, `DRAFT`) with audit timestamp | 1.0h | T3.1 | Verification badge updates immediately and persists across app restarts |
+| **T3.3** | M3.1 | Implement interactive multi-step Workflow Runner | Step-by-step checklist with persistent active step state and failure branching | 1.5h | T3.2 | Progress state survives app force-close and phone reboot |
+| **T3.4** | M3.1 | Run Phase 3 acceptance tests & package debug APK | Passing tests and verified build | 0.5h | T3.3 | `./gradlew testDebugUnitTest assembleDebug` exits 0 |
 
 ### Phase 3 (`M3.1`: Search, Recipes & Resumable Guided Workflows)
 - `T3.1`: Wire instant FTS4 search and top Environment Pill Filter (`All`, `Termux Host`, `Debian proot`, `Windows 11`).

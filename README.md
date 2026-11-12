@@ -6,10 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Phase 1 Complete (Android Foundation & UX Shell Built)  
-**Release:** `0.1.0-phase1` (`app-debug.apk` verified)  
-**Implementation:** Phase 0 (100%) and Phase 1 (100%) complete; Overall MVP 30% complete  
-**Current priority:** Phase 2 — Local Room Database Vault, Backup/Export, and Editable Memory.
+**Stage:** Phase 2 Complete (Room SQLite Vault, Starter Pack & Backup/Restore Built)  
+**Release:** `0.2.0-phase2` (`app-debug.apk` 56MB verified)  
+**Implementation:** Phase 0 (100%), Phase 1 (100%), and Phase 2 (100%) complete; Overall MVP **50% complete**  
+**Current priority:** Phase 3 — Instant Search Filters, Recipe Verification Flow, and Resumable Guided Workflows.
 
 ## The problem
 

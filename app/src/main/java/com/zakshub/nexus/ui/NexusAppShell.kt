@@ -1,5 +1,6 @@
 package com.zakshub.nexus.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,10 +19,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -30,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -37,8 +43,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,19 +54,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.zakshub.nexus.data.StarterKnowledgeCatalog
+import com.zakshub.nexus.data.backup.ImportResult
+import com.zakshub.nexus.data.local.NexusDatabase
+import com.zakshub.nexus.data.repository.NexusRepository
 import com.zakshub.nexus.domain.model.CommandRecipe
+import com.zakshub.nexus.domain.model.DevicePlatform
 import com.zakshub.nexus.domain.model.ExecutionEnvironmentType
+import com.zakshub.nexus.domain.model.ImpactLevel
+import com.zakshub.nexus.domain.model.VerificationStatus
 import com.zakshub.nexus.security.SecretGuardValidator
 import com.zakshub.nexus.ui.components.BadgePill
 import com.zakshub.nexus.ui.components.ExecutionContextCard
 import com.zakshub.nexus.ui.theme.NexusColors
 import com.zakshub.nexus.ui.theme.accentColor
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 enum class NexusTab(val label: String, val icon: ImageVector) {
     RECALL("Recall", Icons.Default.Home),
@@ -70,14 +84,33 @@ enum class NexusTab(val label: String, val icon: ImageVector) {
 }
 
 @Composable
-fun NexusAppShell() {
+fun NexusAppShell(
+    repository: NexusRepository? = null
+) {
+    val context = LocalContext.current
+    val actualRepository = remember {
+        repository ?: NexusRepository(NexusDatabase.getInstance(context))
+    }
+
     var selectedTab by remember { mutableStateOf(NexusTab.RECALL) }
     var selectedEnvironmentFilter by remember { mutableStateOf<ExecutionEnvironmentType?>(null) }
     var searchQuery by remember { mutableStateOf("") }
-    val completedWorkflowStepNumbers = remember { mutableStateListOf<Int>() }
     val snackbarHostState = remember { SnackbarHostState() }
     val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
+
+    // Reactive State from Room Database (falling back to starter catalog while initializing)
+    val dbRecipes by actualRepository.getAllRecipesFlow().collectAsState(initial = emptyList())
+    val recipes = if (dbRecipes.isNotEmpty()) dbRecipes else StarterKnowledgeCatalog.recipes
+
+    val dbEnvironments by actualRepository.getAllEnvironmentsFlow().collectAsState(initial = emptyList())
+    val environments = if (dbEnvironments.isNotEmpty()) dbEnvironments else StarterKnowledgeCatalog.environments
+
+    val dbCases by actualRepository.getAllCasesFlow().collectAsState(initial = emptyList())
+    val cases = if (dbCases.isNotEmpty()) dbCases else StarterKnowledgeCatalog.troubleshootingCases
+
+    val dbWorkflows by actualRepository.getAllWorkflowsFlow().collectAsState(initial = emptyList())
+    val workflow = dbWorkflows.firstOrNull() ?: StarterKnowledgeCatalog.workflows.first()
 
     val copyHandler: (CommandRecipe) -> Unit = { recipe ->
         clipboardManager.setText(AnnotatedString(recipe.commandSyntax))
@@ -85,6 +118,13 @@ fun NexusAppShell() {
             snackbarHostState.showSnackbar(
                 "Copied for ${recipe.environmentType.badgeLabel} (${recipe.targetDeviceName})"
             )
+        }
+    }
+
+    val verifyHandler: (CommandRecipe) -> Unit = { recipe ->
+        scope.launch {
+            actualRepository.updateRecipeVerificationStatus(recipe.id, VerificationStatus.VERIFIED)
+            snackbarHostState.showSnackbar("Marked '${recipe.title}' as Verified on Your Setup!")
         }
     }
 
@@ -116,29 +156,69 @@ fun NexusAppShell() {
 
             when (selectedTab) {
                 NexusTab.RECALL -> RecallScreen(
+                    recipes = recipes,
                     searchQuery = searchQuery,
                     onSearchQueryChange = { searchQuery = it },
                     selectedEnv = selectedEnvironmentFilter,
-                    completedSteps = completedWorkflowStepNumbers,
+                    workflow = workflow,
                     onOpenWorkflowTab = { selectedTab = NexusTab.LIBRARY },
                     onCopyCommand = copyHandler
                 )
                 NexusTab.LIBRARY -> LibraryScreen(
+                    recipes = recipes,
                     selectedEnv = selectedEnvironmentFilter,
-                    completedSteps = completedWorkflowStepNumbers,
-                    onToggleStep = { stepNum ->
-                        if (completedWorkflowStepNumbers.contains(stepNum)) {
-                            completedWorkflowStepNumbers.remove(stepNum)
-                        } else {
-                            completedWorkflowStepNumbers.add(stepNum)
+                    workflow = workflow,
+                    onToggleStep = { stepNumber, isDone ->
+                        scope.launch {
+                            actualRepository.updateStepCompletion(workflow.id, stepNumber, isDone)
+                        }
+                    },
+                    onAddRecipe = { newRecipe ->
+                        scope.launch {
+                            actualRepository.upsertRecipe(newRecipe)
+                            snackbarHostState.showSnackbar("Saved new recipe to Memory Vault!")
                         }
                     },
                     onCopyCommand = copyHandler
                 )
                 NexusTab.TROUBLESHOOT -> TroubleshootScreen(
+                    cases = cases,
                     selectedEnv = selectedEnvironmentFilter
                 )
-                NexusTab.SYSTEMS -> SystemsScreen()
+                NexusTab.SYSTEMS -> SystemsScreen(
+                    environments = environments,
+                    onExportJson = {
+                        scope.launch {
+                            val jsonString = actualRepository.exportJson()
+                            clipboardManager.setText(AnnotatedString(jsonString))
+                            snackbarHostState.showSnackbar("Exported Knowledge Vault JSON copied to clipboard!")
+                        }
+                    },
+                    onExportMarkdown = {
+                        scope.launch {
+                            val mdString = actualRepository.exportMarkdown()
+                            clipboardManager.setText(AnnotatedString(mdString))
+                            snackbarHostState.showSnackbar("Exported Markdown Notebook copied to clipboard!")
+                        }
+                    },
+                    onImportJson = { jsonString ->
+                        scope.launch {
+                            when (val result = actualRepository.importJson(jsonString)) {
+                                is ImportResult.Success -> {
+                                    snackbarHostState.showSnackbar(
+                                        "Restored: ${result.recipesCount} recipes, ${result.casesCount} fixes, ${result.workflowsCount} workflows!"
+                                    )
+                                }
+                                is ImportResult.BlockedBySecretGuard -> {
+                                    snackbarHostState.showSnackbar("BLOCKED: ${result.violationSummary}")
+                                }
+                                is ImportResult.Failure -> {
+                                    snackbarHostState.showSnackbar("Error: ${result.errorMessage}")
+                                }
+                            }
+                        }
+                    }
+                )
             }
         }
     }
@@ -194,14 +274,15 @@ private fun NexusTopHeader(
 
 @Composable
 private fun RecallScreen(
+    recipes: List<CommandRecipe>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     selectedEnv: ExecutionEnvironmentType?,
-    completedSteps: List<Int>,
+    workflow: com.zakshub.nexus.domain.model.GuidedWorkflow,
     onOpenWorkflowTab: () -> Unit,
     onCopyCommand: (CommandRecipe) -> Unit
 ) {
-    val filteredRecipes = StarterKnowledgeCatalog.recipes.filter { recipe ->
+    val filteredRecipes = recipes.filter { recipe ->
         val matchesEnv = selectedEnv == null || recipe.environmentType == selectedEnv
         val matchesSearch = searchQuery.isBlank() ||
             recipe.title.contains(searchQuery, ignoreCase = true) ||
@@ -209,8 +290,6 @@ private fun RecallScreen(
             recipe.commandSyntax.contains(searchQuery, ignoreCase = true)
         matchesEnv && matchesSearch
     }
-
-    val workflow = StarterKnowledgeCatalog.workflows.first()
 
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -235,7 +314,7 @@ private fun RecallScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "Active Step-by-Step Guide (${completedSteps.size} of ${workflow.steps.size} Steps Done)",
+                        text = "Active Step-by-Step Guide (${workflow.completedStepsCount} of ${workflow.steps.size} Steps Done)",
                         style = MaterialTheme.typography.labelMedium,
                         color = NexusColors.Primary,
                         fontWeight = FontWeight.Bold
@@ -280,14 +359,25 @@ private fun RecallScreen(
 
 @Composable
 private fun LibraryScreen(
+    recipes: List<CommandRecipe>,
     selectedEnv: ExecutionEnvironmentType?,
-    completedSteps: List<Int>,
-    onToggleStep: (Int) -> Unit,
+    workflow: com.zakshub.nexus.domain.model.GuidedWorkflow,
+    onToggleStep: (Int, Boolean) -> Unit,
+    onAddRecipe: (CommandRecipe) -> Unit,
     onCopyCommand: (CommandRecipe) -> Unit
 ) {
-    val workflow = StarterKnowledgeCatalog.workflows.first()
-    val recipes = StarterKnowledgeCatalog.recipes.filter {
+    var showAddRecipeDialog by remember { mutableStateOf(false) }
+    var newTitle by remember { mutableStateOf("") }
+    var newCommand by remember { mutableStateOf("") }
+    var newPurpose by remember { mutableStateOf("") }
+    var newEnv by remember { mutableStateOf(ExecutionEnvironmentType.TERMUX_HOST) }
+
+    val filteredRecipes = recipes.filter {
         selectedEnv == null || it.environmentType == selectedEnv
+    }
+
+    val secretValidation = remember(newCommand, newPurpose) {
+        SecretGuardValidator.validate("$newCommand $newPurpose")
     }
 
     LazyColumn(
@@ -295,21 +385,117 @@ private fun LibraryScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text(
-                text = "Guided Checklist: ${workflow.title}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = NexusColors.TextPrimary
-            )
-            Text(
-                text = "Check off each step as you go. Each step clearly states which device and shell to use.",
-                style = MaterialTheme.typography.bodySmall,
-                color = NexusColors.TextSecondary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Guided Checklist: ${workflow.title}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = NexusColors.TextPrimary
+                    )
+                    Text(
+                        text = "Check off each step. Automatically saved to your phone's memory vault.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                }
+                Button(
+                    onClick = { showAddRecipeDialog = !showAddRecipeDialog },
+                    colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                    Text("Add Recipe")
+                }
+            }
+        }
+
+        if (showAddRecipeDialog) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                    border = BorderStroke(1.dp, NexusColors.Primary),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text(
+                            text = "Save New Command to Memory Vault",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = NexusColors.Primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newTitle,
+                            onValueChange = { newTitle = it },
+                            label = { Text("Title (e.g., Check Debian Disk Free)") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = newCommand,
+                            onValueChange = { newCommand = it },
+                            label = { Text("Exact Command Syntax") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = newPurpose,
+                            onValueChange = { newPurpose = it },
+                            label = { Text("Plain-English Purpose (What it does)") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        if (!secretValidation.isSafe) {
+                            Text(
+                                text = "BLOCKED BY SECRET GUARD: Passwords or private keys cannot be saved in notes.",
+                                color = NexusColors.ImpactCautionRed,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        } else {
+                            Button(
+                                onClick = {
+                                    if (newTitle.isNotBlank() && newCommand.isNotBlank()) {
+                                        val deviceName = if (newEnv == ExecutionEnvironmentType.WINDOWS_POWERSHELL) "Windows 11 Laptop" else "Google Pixel 7 Pro"
+                                        val platform = if (newEnv == ExecutionEnvironmentType.WINDOWS_POWERSHELL) DevicePlatform.WINDOWS else DevicePlatform.ANDROID
+                                        onAddRecipe(
+                                            CommandRecipe(
+                                                id = "custom-${UUID.randomUUID()}",
+                                                title = newTitle,
+                                                targetDeviceName = deviceName,
+                                                targetPlatform = platform,
+                                                environmentType = newEnv,
+                                                purposePlainEnglish = newPurpose,
+                                                commandSyntax = newCommand,
+                                                parameters = emptyList(),
+                                                expectedOutputPlainEnglish = "Custom command saved by user.",
+                                                impactLevel = ImpactLevel.CONFIG_CHANGE,
+                                                verificationStatus = VerificationStatus.VERIFIED
+                                            )
+                                        )
+                                        newTitle = ""
+                                        newCommand = ""
+                                        newPurpose = ""
+                                        showAddRecipeDialog = false
+                                    }
+                                },
+                                enabled = newTitle.isNotBlank() && newCommand.isNotBlank() && secretValidation.isSafe,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Save into Vault")
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         items(workflow.steps, key = { it.stepNumber }) { step ->
-            val isDone = completedSteps.contains(step.stepNumber)
             val envColor = step.environmentType.accentColor()
             Card(
                 colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
@@ -320,8 +506,8 @@ private fun LibraryScreen(
                 Column(modifier = Modifier.padding(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
-                            checked = isDone,
-                            onCheckedChange = { onToggleStep(step.stepNumber) }
+                            checked = step.isCompleted,
+                            onCheckedChange = { onToggleStep(step.stepNumber, it) }
                         )
                         Column {
                             Text(
@@ -358,11 +544,6 @@ private fun LibraryScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = NexusColors.TextPrimary
                     )
-                    Text(
-                        text = "If it fails: ${step.ifItFailsHint}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = NexusColors.TextSecondary
-                    )
                 }
             }
         }
@@ -370,14 +551,14 @@ private fun LibraryScreen(
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "All Saved Command Recipes (${recipes.size})",
+                text = "All Saved Command Recipes (${filteredRecipes.size})",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = NexusColors.TextPrimary
             )
         }
 
-        items(recipes, key = { it.id }) { recipe ->
+        items(filteredRecipes, key = { it.id }) { recipe ->
             ExecutionContextCard(
                 recipe = recipe,
                 onCopyCommand = onCopyCommand
@@ -387,8 +568,11 @@ private fun LibraryScreen(
 }
 
 @Composable
-private fun TroubleshootScreen(selectedEnv: ExecutionEnvironmentType?) {
-    val cases = StarterKnowledgeCatalog.troubleshootingCases.filter {
+private fun TroubleshootScreen(
+    cases: List<com.zakshub.nexus.domain.model.TroubleshootingCase>,
+    selectedEnv: ExecutionEnvironmentType?
+) {
+    val filteredCases = cases.filter {
         selectedEnv == null || it.environmentType == selectedEnv
     }
 
@@ -410,7 +594,7 @@ private fun TroubleshootScreen(selectedEnv: ExecutionEnvironmentType?) {
             )
         }
 
-        items(cases, key = { it.id }) { item ->
+        items(filteredCases, key = { it.id }) { item ->
             val envColor = item.environmentType.accentColor()
             Card(
                 colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
@@ -462,9 +646,17 @@ private fun TroubleshootScreen(selectedEnv: ExecutionEnvironmentType?) {
 }
 
 @Composable
-private fun SystemsScreen() {
+private fun SystemsScreen(
+    environments: List<com.zakshub.nexus.domain.model.EnvironmentProfile>,
+    onExportJson: () -> Unit,
+    onExportMarkdown: () -> Unit,
+    onImportJson: (String) -> Unit
+) {
     var candidateNote by remember { mutableStateOf("") }
     val validation = remember(candidateNote) { SecretGuardValidator.validate(candidateNote) }
+
+    var importPayloadText by remember { mutableStateOf("") }
+    var showImportBox by remember { mutableStateOf(false) }
 
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -484,7 +676,7 @@ private fun SystemsScreen() {
             )
         }
 
-        items(StarterKnowledgeCatalog.environments, key = { it.id }) { env ->
+        items(environments, key = { it.id }) { env ->
             val envColor = env.type.accentColor()
             Card(
                 colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
@@ -516,6 +708,83 @@ private fun SystemsScreen() {
                         style = MaterialTheme.typography.bodySmall,
                         color = NexusColors.ImpactConfigAmber
                     )
+                }
+            }
+        }
+
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Backup & Knowledge Export / Restore",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = NexusColors.Primary
+                    )
+                    Text(
+                        text = "Save your technical memory vault as clean JSON or Markdown, or restore from a backup file.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Button(
+                            onClick = onExportJson,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Upload, contentDescription = "JSON")
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Export JSON")
+                        }
+                        OutlinedButton(
+                            onClick = onExportMarkdown,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Export Markdown")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = { showImportBox = !showImportBox },
+                        colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Secondary),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Download, contentDescription = "Import")
+                        Text(if (showImportBox) "Hide Restore Box" else "Restore from Backup JSON")
+                    }
+
+                    AnimatedVisibility(visible = showImportBox) {
+                        Column(modifier = Modifier.padding(top = 10.dp)) {
+                            OutlinedTextField(
+                                value = importPayloadText,
+                                onValueChange = { importPayloadText = it },
+                                label = { Text("Paste Backup JSON here...") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Button(
+                                onClick = {
+                                    if (importPayloadText.isNotBlank()) {
+                                        onImportJson(importPayloadText)
+                                        importPayloadText = ""
+                                        showImportBox = false
+                                    }
+                                },
+                                enabled = importPayloadText.isNotBlank(),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Scan with Secret Guard & Restore")
+                            }
+                        }
+                    }
                 }
             }
         }
