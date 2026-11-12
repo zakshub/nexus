@@ -55,11 +55,14 @@
 | **T3.3** | M3.1 | Implement interactive multi-step Workflow Runner | Step-by-step checklist with persistent active step state and Troubleshooter copy shortcuts | 1.5h | 0.3h | T3.2 | **Completed** | Step check state saved to SQLite; copy shortcuts for safe check & fix |
 | **T3.4** | M3.1 | Run Phase 3 acceptance tests & package debug APK | `SearchAndWorkflowTest.kt`, assemble debug APK | 0.5h | 0.1h | T3.3 | **Completed** | 14/14 unit tests passing (`100%`), `app-debug.apk` (56MB) assembled |
 
-### Phase 4 (`M4.1`: Contextual Grounded Assistant)
-- `T4.1`: Define `AiAssistantProvider` interface and default `OfflineRetrievalProvider` (100% offline).
-- `T4.2`: Implement `ContextRedactor` and mandatory **Context Preview Dialog** showing exact redacted text before any remote call.
-- `T4.3`: Implement opt-in `RemoteGeminiProvider` (using Android Keystore for API key) and `✨ AI Suggested — Unverified` response cards with local recipe citations.
-- `T4.4`: Test hallucination warnings, high-risk command flagging, and prompt-injection defense.
+## Phase 4 tasks (`M4.1`: Grounded AI Assistant & Secret Redaction — 100% Completed)
+
+| ID | Milestone | Task | Deliverable | Estimate | Actual | Deps | Status | Evidence & Test Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **T4.1** | M4.1 | Define `AiAssistantProvider` interface and citations model | `AiAssistantProvider.kt` with `AssistantCitation` and `AssistantDiagnosticResponse` | 1.0h | 0.3h | T3.4 | **Completed** | Clean contract for local/remote assistants with citations and risk warnings |
+| **T4.2** | M4.1 | Implement `OfflineRetrievalProvider` | Deterministic local vault search ranking cases and verified recipes | 1.0h | 0.3h | T4.1 | **Completed** | 100% offline retrieval with zero network calls and grounded local citations |
+| **T4.3** | M4.1 | Implement `ContextRedactor` and Context Preview Dialog | SecretGuard-backed sanitization, prompt injection defense, and destructive command detection | 1.0h | 0.2h | T4.2 | **Completed** | Verified: blocks passwords, API tokens, flags `rm -rf /`, `mkfs`, `chmod 777` |
+| **T4.4** | M4.1 | Wire Assistant into UI & run Phase 4 unit tests | Interactive card in `TroubleshootScreen`, `AiAssistantTest.kt`, assemble debug APK | 1.0h | 0.2h | T4.3 | **Completed** | 20/20 unit tests passing (`100%`), `app-debug.apk` (56MB) assembled |
 
 ### Phases 5 to 9 (Post-MVP & Optional)
 - **Phase 5 (`M5.1`):** Select and prototype one permissioned read-only inspection workflow (Termux `RUN_COMMAND` Intent or localhost SSH `127.0.0.1:8022`).

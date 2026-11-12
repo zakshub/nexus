@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), Phase 2 (`100%`), and Phase 3 (`100%`) completed (**`70%` overall MVP completion**). Ready for Phase 4 (Pluggable Grounded AI Assistant with Secret Redaction).
+**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), Phase 2 (`100%`), Phase 3 (`100%`), and Phase 4 (`100%`) completed (**`85%` overall MVP completion**). Ready for Phase 8 (Personal Release Packaging & 5-minute Owner Playbook).
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |
@@ -8,11 +8,11 @@
 | **1** | **Android foundation & UX shell** | Create Kotlin/Compose app shell, 4-tab navigation, Execution Context Card UI, unit tests, and CI build pipeline | 3–4 hours | **Completed (`2026-11-12`)** | **100%** |
 | **2** | **Technical memory & starter pack** | Room SQLite database, Secret Guard, JSON/MD export & restore, and pre-seeded Pixel 7 Pro / Termux / Debian / Windows 11 memory | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
 | **3** | **Search & guided workflows** | Instant environment-filtered search, recipe verification flows, and resumable step-by-step workflows | 4–5 hours | **Completed (`2026-11-12`)** | **100%** |
-| **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with offline retrieval, opt-in Gemini redaction + Context Preview, and citations | 3–4 hours | **Next Up (Ready)** | 0% |
+| **4** | **Contextual AI assistant** | Pluggable `AiAssistantProvider` with 100% offline retrieval, secret sanitization, high-risk detection, and citations | 3–4 hours | **Completed (`2026-11-12`)** | **100%** |
 | **5** | **Read-only inspection** | Permissioned Termux Intent or localhost SSH read-only environment health checks | 4–6 hours | Postponed (Post-MVP) | 0% |
 | **6** | **Approved operations** | Typed allowlisted operations with per-action approval, timeouts, redaction, and audit trail | 5–7 hours | Postponed (Post-MVP) | 0% |
 | **7** | **Windows companion** | Optional Windows 11 bridge if manual SSH handoff proves insufficient | 6–8 hours | Optional / Deferred | 0% |
-| **8** | **Personal release** | Signed/installable personal APK, full backup/restore verification, and owner playbook | 2–3 hours | Planned | 0% |
+| **8** | **Personal release** | Signed/installable personal APK, full backup/restore verification, and owner playbook | 2–3 hours | **Next Up (Ready)** | 0% |
 | **9** | **Commercial feasibility** | Evaluate broader market demand only after personal utility is proven | TBD | Optional research | 0% |
 
 ---

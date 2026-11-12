@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
@@ -59,6 +60,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.zakshub.nexus.ai.AssistantDiagnosticResponse
+import com.zakshub.nexus.ai.ContextRedactor
+import com.zakshub.nexus.ai.DiagnosticQueryContext
+import com.zakshub.nexus.ai.OfflineRetrievalProvider
 import com.zakshub.nexus.data.StarterKnowledgeCatalog
 import com.zakshub.nexus.data.backup.ImportResult
 import com.zakshub.nexus.data.local.NexusDatabase
@@ -185,6 +190,7 @@ fun NexusAppShell(
                 )
                 NexusTab.TROUBLESHOOT -> TroubleshootScreen(
                     cases = cases,
+                    recipes = recipes,
                     selectedEnv = selectedEnvironmentFilter,
                     onCopyCommand = { cmd, label ->
                         clipboardManager.setText(AnnotatedString(cmd))
@@ -582,6 +588,7 @@ private fun LibraryScreen(
 @Composable
 private fun TroubleshootScreen(
     cases: List<com.zakshub.nexus.domain.model.TroubleshootingCase>,
+    recipes: List<CommandRecipe> = emptyList(),
     selectedEnv: ExecutionEnvironmentType?,
     onCopyCommand: (String, String) -> Unit = { _, _ -> }
 ) {
@@ -589,19 +596,232 @@ private fun TroubleshootScreen(
         selectedEnv == null || it.environmentType == selectedEnv
     }
 
+    val assistantProvider = remember { OfflineRetrievalProvider() }
+    val scope = rememberCoroutineScope()
+
+    var assistantQuestion by remember { mutableStateOf("") }
+    var assistantErrorLog by remember { mutableStateOf("") }
+    var diagnosticResult by remember { mutableStateOf<AssistantDiagnosticResponse?>(null) }
+    var showContextPreview by remember { mutableStateOf(false) }
+    var previewPromptText by remember { mutableStateOf("") }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                border = BorderStroke(1.dp, NexusColors.Primary.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "AI Assistant",
+                            tint = NexusColors.Primary
+                        )
+                        Text(
+                            text = "  Ask Technical Assistant",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NexusColors.Primary
+                        )
+                    }
+                    Text(
+                        text = "100% offline retrieval grounded in your verified notes and troubleshooting history. Never leaks passwords or private keys.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = assistantQuestion,
+                        onValueChange = { assistantQuestion = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("What technical issue or question do you have?") },
+                        placeholder = { Text("e.g. SSH connection timed out on port 8022") }
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = assistantErrorLog,
+                        onValueChange = { assistantErrorLog = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Terminal error snippet (optional)") },
+                        placeholder = { Text("e.g. Connection refused or command not found") }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                val queryCtx = DiagnosticQueryContext(
+                                    userQuestion = assistantQuestion,
+                                    errorSnippet = assistantErrorLog.ifBlank { null },
+                                    selectedEnvironment = selectedEnv,
+                                    availableVerifiedRecipes = recipes,
+                                    knownCases = cases
+                                )
+                                previewPromptText = ContextRedactor.buildPreviewPrompt(queryCtx)
+                                showContextPreview = !showContextPreview
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(if (showContextPreview) "Hide Preview" else "Preview Context")
+                        }
+
+                        Button(
+                            onClick = {
+                                val queryCtx = DiagnosticQueryContext(
+                                    userQuestion = assistantQuestion,
+                                    errorSnippet = assistantErrorLog.ifBlank { null },
+                                    selectedEnvironment = selectedEnv,
+                                    availableVerifiedRecipes = recipes,
+                                    knownCases = cases
+                                )
+                                scope.launch {
+                                    diagnosticResult = assistantProvider.diagnose(queryCtx)
+                                }
+                            },
+                            enabled = assistantQuestion.isNotBlank(),
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                        ) {
+                            Text("Diagnose Safe Fix")
+                        }
+                    }
+
+                    AnimatedVisibility(visible = showContextPreview) {
+                        Column(modifier = Modifier.padding(top = 10.dp)) {
+                            Text(
+                                text = "Redacted Context (Secret Guard Verified):",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.Primary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = previewPromptText,
+                                fontFamily = FontFamily.Monospace,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = NexusColors.TextSecondary,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF070A10), RoundedCornerShape(8.dp))
+                                    .padding(10.dp)
+                            )
+                        }
+                    }
+
+                    diagnosticResult?.let { res ->
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
+                            border = BorderStroke(1.dp, NexusColors.Primary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    BadgePill(
+                                        text = if (res.verificationStatus == VerificationStatus.VERIFIED) "Verified in Personal Memory" else "✨ AI Suggestion — Unverified",
+                                        color = if (res.verificationStatus == VerificationStatus.VERIFIED) NexusColors.ImpactSafeGreen else NexusColors.ImpactConfigAmber
+                                    )
+                                    BadgePill(
+                                        text = res.targetEnvironment.badgeLabel,
+                                        color = res.targetEnvironment.accentColor()
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = res.plainEnglishDiagnosis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = NexusColors.TextPrimary
+                                )
+
+                                res.highRiskWarning?.let { warning ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = warning,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = NexusColors.ImpactCautionRed,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(NexusColors.ImpactCautionRed.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                            .padding(8.dp)
+                                    )
+                                }
+
+                                res.suggestedCommand?.let { cmd ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = cmd,
+                                            fontFamily = FontFamily.Monospace,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = NexusColors.Primary,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .background(Color(0xFF070A10), RoundedCornerShape(6.dp))
+                                                .padding(8.dp)
+                                        )
+                                        Button(
+                                            onClick = { onCopyCommand(cmd, "Suggested Command") },
+                                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary),
+                                            modifier = Modifier.padding(start = 6.dp)
+                                        ) {
+                                            Text("Copy", style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+
+                                if (res.citations.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Text(
+                                        text = "Vault Citations (${res.citations.size}):",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = NexusColors.TextSecondary
+                                    )
+                                    res.citations.forEach { citation ->
+                                        Text(
+                                            text = "• [${citation.environmentType}] ${citation.title}: ${citation.relevanceSnippet}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = NexusColors.TextSecondary,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Symptom → Why It Happens → Safe Fix",
+                text = "Proven Troubleshooting Cases (${filteredCases.size})",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = NexusColors.TextPrimary
             )
             Text(
-                text = "Proven solutions grounded in your Pixel 7 Pro (Termux / Debian) and Windows 11 setup.",
+                text = "Direct solutions grounded in your Pixel 7 Pro (Termux / Debian) and Windows 11 setup.",
                 style = MaterialTheme.typography.bodySmall,
                 color = NexusColors.TextSecondary
             )
