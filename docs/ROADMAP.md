@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), Phase 2 (`100%`), Phase 3 (`100%`), and Phase 4 (`100%`) completed (**`85%` overall MVP completion**). Ready for Phase 8 (Personal Release Packaging & 5-minute Owner Playbook).
+**Current status:** Phase 0 (`100%`), Phase 1 (`100%`), Phase 2 (`100%`), Phase 3 (`100%`), Phase 4 (`100%`), and Phase 8 (`100%`) completed (**`100%` Personal MVP Complete!**). Core personal technical assistant is fully built, tested, packaged, and documented.
 
 | Phase | Name | Goal | Est. Effort | Status | Completion |
 | --- | --- | --- | --- | --- | --- |
@@ -12,7 +12,7 @@
 | **5** | **Read-only inspection** | Permissioned Termux Intent or localhost SSH read-only environment health checks | 4–6 hours | Postponed (Post-MVP) | 0% |
 | **6** | **Approved operations** | Typed allowlisted operations with per-action approval, timeouts, redaction, and audit trail | 5–7 hours | Postponed (Post-MVP) | 0% |
 | **7** | **Windows companion** | Optional Windows 11 bridge if manual SSH handoff proves insufficient | 6–8 hours | Optional / Deferred | 0% |
-| **8** | **Personal release** | Signed/installable personal APK, full backup/restore verification, and owner playbook | 2–3 hours | **Next Up (Ready)** | 0% |
+| **8** | **Personal release** | Signed/installable personal APK (`v0.8.0-final`), full backup/restore verification, and 5-min owner playbook | 2–3 hours | **Completed (`2026-11-12`)** | **100%** |
 | **9** | **Commercial feasibility** | Evaluate broader market demand only after personal utility is proven | TBD | Optional research | 0% |
 
 ---

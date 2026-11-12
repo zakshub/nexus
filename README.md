@@ -6,10 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Phase 4 Complete (Grounded AI Assistant, Secret Sanitizer & Context Preview Built)  
-**Release:** `0.4.0-phase4` (`app-debug.apk` 56MB verified, 20/20 unit tests passing)  
-**Implementation:** Phase 0 (100%), Phase 1 (100%), Phase 2 (100%), Phase 3 (100%), and Phase 4 (100%) complete; Overall MVP **85% complete**  
-**Current priority:** Phase 8 — Personal Release Packaging, Backup Verification, and 5-Minute Owner Playbook.
+**Stage:** Personal MVP Complete (Phases 0, 1, 2, 3, 4 & 8 Complete)  
+**Release:** `0.8.0-final` (`app-debug.apk` 56MB verified, 20/20 unit tests passing)  
+**Implementation:** Phase 0 (100%), Phase 1 (100%), Phase 2 (100%), Phase 3 (100%), Phase 4 (100%), Phase 8 (100%); **Personal MVP 100% complete**  
+**User guide:** See [5-Minute Owner Playbook](docs/OWNER_PLAYBOOK.md) for installation and daily usage.
 
 ## The problem
 
@@ -44,6 +44,7 @@ These are user reported facts and must be rechecked during discovery. Do not ass
 
 ## Proposed documentation
 
+- [5-minute owner playbook](docs/OWNER_PLAYBOOK.md)
 - [Product brief](docs/PRODUCT_BRIEF.md)
 - [Vision and mission](docs/VISION_AND_MISSION.md)
 - [Architecture](docs/ARCHITECTURE.md)
