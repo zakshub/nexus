@@ -25,3 +25,4 @@ secrets.properties
 Thumbs.db
 *.apk
 !release/nexus-v0.11.0.apk
+!release/nexus-v0.12.0.apk

@@ -3,6 +3,7 @@ package com.zakshub.nexus.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zakshub.nexus.ui.components.NexusLogo
 import androidx.compose.runtime.Composable
@@ -78,12 +80,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.zakshub.nexus.ai.AssistantDiagnosticResponse
 import com.zakshub.nexus.ai.ContextRedactor
 import com.zakshub.nexus.ai.DiagnosticQueryContext
+import com.zakshub.nexus.ai.MobileTerminalAgent
 import com.zakshub.nexus.ai.OfflineRetrievalProvider
 import com.zakshub.nexus.data.StarterKnowledgeCatalog
+import com.zakshub.nexus.domain.model.AgentActionStep
+import com.zakshub.nexus.domain.model.AgentWorkflowPlan
+import com.zakshub.nexus.security.SecureApiKeyStorage
 import com.zakshub.nexus.data.backup.ImportResult
 import com.zakshub.nexus.data.local.NexusDatabase
 import com.zakshub.nexus.data.repository.NexusRepository
@@ -267,7 +272,8 @@ fun NexusAppShell(
                         scope.launch {
                             snackbarHostState.showSnackbar("Copied $label: $cmd")
                         }
-                    }
+                    },
+                    onOpenTermux = openTermuxHandler
                 )
                 NexusTab.SYSTEMS -> SystemsScreen(
                     environments = environments,
@@ -1031,12 +1037,14 @@ private fun LibraryScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TroubleshootScreen(
     cases: List<com.zakshub.nexus.domain.model.TroubleshootingCase>,
     recipes: List<CommandRecipe> = emptyList(),
     selectedEnv: ExecutionEnvironmentType?,
-    onCopyCommand: (String, String) -> Unit = { _, _ -> }
+    onCopyCommand: (String, String) -> Unit = { _, _ -> },
+    onOpenTermux: () -> Unit = {}
 ) {
     val filteredCases = cases.filter {
         selectedEnv == null || it.environmentType == selectedEnv
@@ -1044,6 +1052,9 @@ private fun TroubleshootScreen(
 
     val assistantProvider = remember { OfflineRetrievalProvider() }
     val scope = rememberCoroutineScope()
+
+    var agentGoalInput by remember { mutableStateOf("") }
+    var agentPlan by remember { mutableStateOf<AgentWorkflowPlan?>(null) }
 
     var assistantQuestion by remember { mutableStateOf("") }
     var assistantErrorLog by remember { mutableStateOf("") }
@@ -1055,6 +1066,250 @@ private fun TroubleshootScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                border = BorderStroke(1.dp, NexusColors.Primary),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Agent Co-Pilot",
+                                tint = NexusColors.Primary
+                            )
+                            Text(
+                                text = "  Mobile Terminal Agent (کو پائلٹ)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = NexusColors.Primary
+                            )
+                        }
+                        BadgePill(
+                            text = "Termux ↔ Debian PRoot",
+                            color = NexusColors.Primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Explain in Urdu or English what you want to achieve on your phone. NEXUS generates a verified, step-by-step terminal plan with prompt checks and one-tap copy.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val suggestions = listOf(
+                            "📁 Explore Downloads" to "show my downloads folder in termux",
+                            "🐧 Enter Debian Linux" to "debian linux proot open karo",
+                            "🌿 Check Git Status" to "git status in project repository",
+                            "🔄 Update Packages" to "update all packages safely",
+                            "⚡ Check RAM & IP" to "check memory and network ip"
+                        )
+                        suggestions.forEach { (label, prompt) ->
+                            FilterChip(
+                                selected = agentGoalInput == prompt,
+                                onClick = {
+                                    agentGoalInput = prompt
+                                    agentPlan = MobileTerminalAgent.createPlan(
+                                        userIntent = prompt,
+                                        targetEnvironmentScope = selectedEnv,
+                                        availableRecipes = recipes
+                                    )
+                                },
+                                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = NexusColors.Surface,
+                                    labelColor = NexusColors.TextPrimary,
+                                    selectedContainerColor = NexusColors.Primary.copy(alpha = 0.2f),
+                                    selectedLabelColor = NexusColors.Primary
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = agentGoalInput,
+                        onValueChange = { agentGoalInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("What do you want to do on your phone? (اردو / English)") },
+                        placeholder = { Text("e.g. debian open kar ke project dekho ya downloads check karo") }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                agentPlan = MobileTerminalAgent.createPlan(
+                                    userIntent = agentGoalInput,
+                                    targetEnvironmentScope = selectedEnv,
+                                    availableRecipes = recipes
+                                )
+                            },
+                            enabled = agentGoalInput.isNotBlank(),
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                        ) {
+                            Text("Generate Plan (ورک فلو بنائیں)")
+                        }
+                        OutlinedButton(
+                            onClick = onOpenTermux,
+                            modifier = Modifier.weight(0.7f)
+                        ) {
+                            Text("Open Termux ↗")
+                        }
+                    }
+
+                    agentPlan?.let { plan ->
+                        Spacer(modifier = Modifier.height(14.dp))
+                        val isBlocked = plan.safetyNotice != null && plan.steps.isEmpty()
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = NexusColors.Surface),
+                            border = BorderStroke(1.dp, if (!isBlocked) NexusColors.Primary else NexusColors.ImpactCautionRed),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    BadgePill(
+                                        text = plan.provenance.badgeLabel,
+                                        color = if (!isBlocked) NexusColors.ImpactSafeGreen else NexusColors.ImpactCautionRed
+                                    )
+                                    BadgePill(
+                                        text = "${plan.steps.size} Step${if (plan.steps.size != 1) "s" else ""}",
+                                        color = NexusColors.Primary
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = plan.goalSummary,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = NexusColors.TextPrimary
+                                )
+
+                                plan.safetyNotice?.let { notice ->
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "⚠️ $notice",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = NexusColors.ImpactCautionRed,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(NexusColors.ImpactCautionRed.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                            .padding(8.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(10.dp))
+
+                                plan.steps.forEach { step ->
+                                    val envColor = step.targetEnvironment.accentColor()
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                                        border = BorderStroke(1.dp, envColor.copy(alpha = 0.5f)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp)
+                                    ) {
+                                        Column(modifier = Modifier.padding(10.dp)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                BadgePill(
+                                                    text = "Step ${step.stepNumber}: ${step.targetEnvironment.badgeLabel}",
+                                                    color = envColor
+                                                )
+                                                BadgePill(
+                                                    text = "Prompt: ${step.expectedPrompt}",
+                                                    color = NexusColors.Secondary
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = "${step.title}: ${step.purposePlainEnglish}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = NexusColors.TextSecondary
+                                            )
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = step.commandSyntax,
+                                                    fontFamily = FontFamily.Monospace,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = NexusColors.Primary,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .background(Color(0xFF070A10), RoundedCornerShape(6.dp))
+                                                        .padding(8.dp)
+                                                )
+                                                Button(
+                                                    onClick = { onCopyCommand(step.commandSyntax, "Step ${step.stepNumber}") },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary),
+                                                    modifier = Modifier.padding(start = 6.dp)
+                                                ) {
+                                                    Text("Copy", style = MaterialTheme.typography.labelSmall)
+                                                }
+                                            }
+                                            if (step.expectedResult.isNotBlank()) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Expected: ${step.expectedResult}",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = NexusColors.TextSecondary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (plan.steps.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Button(
+                                            onClick = onOpenTermux,
+                                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                                        ) {
+                                            Text("Open Termux to Execute ↗", style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
@@ -1368,6 +1623,11 @@ private fun SystemsScreen(
     var candidateNote by remember { mutableStateOf("") }
     val validation = remember(candidateNote) { SecretGuardValidator.validate(candidateNote) }
 
+    var hasGeminiKey by remember { mutableStateOf(SecureApiKeyStorage.hasApiKey(context)) }
+    var maskedGeminiKey by remember { mutableStateOf(SecureApiKeyStorage.getMaskedApiKey(context)) }
+    var showKeyDialog by remember { mutableStateOf(false) }
+    var candidateApiKey by remember { mutableStateOf("") }
+
     var importPayloadText by remember { mutableStateOf("") }
     var showImportBox by remember { mutableStateOf(false) }
 
@@ -1502,6 +1762,136 @@ private fun SystemsScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = NexusColors.TextSecondary
                             )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = NexusColors.SurfaceElevated),
+                border = BorderStroke(1.dp, NexusColors.Primary.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "🔑 AI Agent & Gemini API Key",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = NexusColors.Primary
+                        )
+                        BadgePill(
+                            text = if (hasGeminiKey) "Key Configured" else "100% Offline Mode",
+                            color = if (hasGeminiKey) NexusColors.ImpactSafeGreen else NexusColors.ImpactConfigAmber
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "NEXUS operates entirely offline with verified personal vault notes. You can optionally store your Google Gemini API key on-device for enhanced online reasoning. Your key is stored in encrypted device storage and NEVER leaves your phone.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NexusColors.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (hasGeminiKey) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Stored Key (Masked)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = NexusColors.TextSecondary
+                                )
+                                Text(
+                                    text = maskedGeminiKey,
+                                    fontFamily = FontFamily.Monospace,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = NexusColors.TextPrimary
+                                )
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        candidateApiKey = ""
+                                        showKeyDialog = true
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Change", style = MaterialTheme.typography.labelSmall)
+                                }
+                                Button(
+                                    onClick = {
+                                        SecureApiKeyStorage.clearApiKey(context)
+                                        hasGeminiKey = false
+                                        maskedGeminiKey = "None"
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = NexusColors.ImpactCautionRed),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Remove", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                candidateApiKey = ""
+                                showKeyDialog = true
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                        ) {
+                            Text("Add Gemini API Key (Optional)")
+                        }
+                    }
+
+                    AnimatedVisibility(visible = showKeyDialog) {
+                        Column(modifier = Modifier.padding(top = 10.dp)) {
+                            OutlinedTextField(
+                                value = candidateApiKey,
+                                onValueChange = { candidateApiKey = it },
+                                label = { Text("Paste Google Gemini API Key (AIzaSy...)") },
+                                placeholder = { Text("AIzaSy...") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = { showKeyDialog = false },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Cancel")
+                                }
+                                Button(
+                                    onClick = {
+                                        if (candidateApiKey.isNotBlank()) {
+                                            SecureApiKeyStorage.saveApiKey(context, candidateApiKey.trim())
+                                            hasGeminiKey = true
+                                            maskedGeminiKey = SecureApiKeyStorage.getMaskedApiKey(context)
+                                            showKeyDialog = false
+                                        }
+                                    },
+                                    enabled = candidateApiKey.isNotBlank(),
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = NexusColors.Primary)
+                                ) {
+                                    Text("Save Securely")
+                                }
+                            }
                         }
                     }
                 }

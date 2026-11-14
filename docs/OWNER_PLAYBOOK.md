@@ -1,6 +1,6 @@
 # NEXUS Owner Playbook
 
-**Version:** 0.10.0  
+**Version:** 0.12.0  
 **Target User:** Designer & System Owner (Pixel 7 Pro + Windows 11 + Termux + Debian proot)  
 **Read Time:** ~5 minutes  
 
@@ -20,11 +20,11 @@ You don't need the Google Play Store or developer tools to install NEXUS.
 
 ### Step-by-Step Installation:
 1. **Download the APK:**
-   - Grab `app-debug.apk` (or `release/nexus-v0.10.0.apk` in this repository).
-   - Direct download URL: `https://github.com/zakshub/nexus/raw/main/release/nexus-v0.10.0.apk`
+   - Grab `app-debug.apk` (or `release/nexus-v0.12.0.apk` in this repository).
+   - Direct download URL: `https://github.com/zakshub/nexus/raw/main/release/nexus-v0.12.0.apk`
 2. **Open the File:**
    - Open the **Files by Google** app (or any file manager) on your phone.
-   - Tap on `nexus-v0.10.0.apk`.
+   - Tap on `nexus-v0.12.0.apk`.
 3. **Allow Installation (One-Time Prompt):**
    - Android will ask: *"For your security, your phone is not allowed to install unknown apps from this source."*
    - Tap **Settings** → toggle **Allow from this source** ON.

@@ -189,3 +189,29 @@ data class TroubleshootingCase(
     val verifiedFixCommand: String,
     val verificationStatus: VerificationStatus
 )
+
+/**
+ * A single step in an executable, audited mobile terminal workflow plan.
+ */
+data class AgentActionStep(
+    val stepNumber: Int,
+    val title: String,
+    val targetEnvironment: ExecutionEnvironmentType,
+    val expectedPrompt: String,
+    val commandSyntax: String,
+    val purposePlainEnglish: String,
+    val expectedResult: String,
+    val impactLevel: ImpactLevel = ImpactLevel.READ_ONLY,
+    val isCompleted: Boolean = false
+)
+
+/**
+ * An executable multi-step Agent plan generated from natural language intent.
+ */
+data class AgentWorkflowPlan(
+    val goalSummary: String,
+    val targetDeviceName: String = "Google Pixel 7 Pro",
+    val steps: List<AgentActionStep>,
+    val safetyNotice: String? = null,
+    val provenance: VerificationStatus = VerificationStatus.AI_SUGGESTED
+)

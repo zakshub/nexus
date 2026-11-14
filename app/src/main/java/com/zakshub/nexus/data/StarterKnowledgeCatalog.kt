@@ -281,10 +281,160 @@ object StarterKnowledgeCatalog {
             impactLevel = ImpactLevel.READ_ONLY,
             verificationStatus = VerificationStatus.VERIFIED,
             isPinnedDaily = false
+        ),
+        CommandRecipe(
+            id = "recipe-termux-setup-storage",
+            title = "Grant Phone Storage Access to Termux",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Creates symlinks in `~/storage` to your phone's internal storage, Downloads, DCIM, and Movies folders.",
+            commandSyntax = "termux-setup-storage",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "termux-setup-storage",
+                    meaningPlainEnglish = "Requests Android storage permission and creates the `~/storage` directory links."
+                )
+            ),
+            expectedOutputPlainEnglish = "Android prompts 'Allow Termux to access photos and files?'. Tap Allow.",
+            impactLevel = ImpactLevel.CONFIG_CHANGE,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = false
+        ),
+        CommandRecipe(
+            id = "recipe-termux-goto-downloads",
+            title = "Explore Phone Downloads Folder in Termux",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+            purposePlainEnglish = "Navigates into your Pixel 7 Pro's Downloads folder directly from the Termux shell so you can see downloaded files.",
+            commandSyntax = "cd ~/storage/downloads && pwd && ls -lh",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "cd ~/storage/downloads",
+                    meaningPlainEnglish = "Switches active directory into phone Downloads."
+                ),
+                CommandParameterBreakdown(
+                    token = "pwd",
+                    meaningPlainEnglish = "Prints working directory path to confirm location."
+                ),
+                CommandParameterBreakdown(
+                    token = "ls -lh",
+                    meaningPlainEnglish = "Lists all files with readable sizes (KB/MB)."
+                )
+            ),
+            expectedOutputPlainEnglish = "Prints `/data/data/com.termux/files/home/storage/downloads` followed by your downloaded files.",
+            impactLevel = ImpactLevel.READ_ONLY,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = true
+        ),
+        CommandRecipe(
+            id = "recipe-debian-explore-root",
+            title = "Explore Debian Linux Root Directory",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.DEBIAN_PROOT,
+            purposePlainEnglish = "Navigates into `/root` inside Debian PRoot and lists all project files and hidden configuration files.",
+            commandSyntax = "cd /root && pwd && ls -la",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "cd /root",
+                    meaningPlainEnglish = "Changes directory into Debian's root user home folder."
+                ),
+                CommandParameterBreakdown(
+                    token = "ls -la",
+                    meaningPlainEnglish = "Lists all files including hidden dotfiles (.bashrc, .git, etc.)."
+                )
+            ),
+            expectedOutputPlainEnglish = "Shows `/root` followed by the contents of your Linux workspace.",
+            impactLevel = ImpactLevel.READ_ONLY,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = true
+        ),
+        CommandRecipe(
+            id = "recipe-debian-exit-to-termux",
+            title = "Safely Exit Debian and Return to Termux",
+            targetDeviceName = "Google Pixel 7 Pro",
+            targetPlatform = DevicePlatform.ANDROID,
+            environmentType = ExecutionEnvironmentType.DEBIAN_PROOT,
+            purposePlainEnglish = "Closes the Debian proot container session and returns you to the native Termux host shell.",
+            commandSyntax = "exit",
+            parameters = listOf(
+                CommandParameterBreakdown(
+                    token = "exit",
+                    meaningPlainEnglish = "Terminates the current shell process and returns to parent."
+                )
+            ),
+            expectedOutputPlainEnglish = "The prompt changes from `root@localhost:~#` back to Termux `~ $`.",
+            impactLevel = ImpactLevel.READ_ONLY,
+            verificationStatus = VerificationStatus.VERIFIED,
+            isPinnedDaily = true
         )
     )
 
     val workflows: List<GuidedWorkflow> = listOf(
+        GuidedWorkflow(
+            id = "workflow-mobile-standalone-operator",
+            title = "Mobile-Only Navigation: Operating Termux & Debian PRoot",
+            summaryPlainEnglish = "5-step mobile checklist to explore phone storage, navigate folders, enter Debian Linux, work on projects, and return safely without a PC.",
+            steps = listOf(
+                GuidedWorkflowStep(
+                    stepNumber = 1,
+                    title = "Grant Phone Storage Access in Termux",
+                    targetDeviceName = "Google Pixel 7 Pro",
+                    environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+                    explanationPlainEnglish = "First grant Termux permission to see your phone's internal storage and Downloads folder.",
+                    commandToRun = "termux-setup-storage",
+                    expectedResult = "Android permission popup appears. Tap Allow.",
+                    impactLevel = ImpactLevel.CONFIG_CHANGE,
+                    ifItFailsHint = "If permission dialog does not appear, go to Android Settings -> Apps -> Termux -> Permissions and enable Photos and Videos / Files."
+                ),
+                GuidedWorkflowStep(
+                    stepNumber = 2,
+                    title = "Explore Phone Downloads Folder",
+                    targetDeviceName = "Google Pixel 7 Pro",
+                    environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+                    explanationPlainEnglish = "Navigate into your phone's Downloads directory and inspect downloaded files.",
+                    commandToRun = "cd ~/storage/downloads && pwd && ls -lh",
+                    expectedResult = "You see your downloaded files listed with file sizes.",
+                    impactLevel = ImpactLevel.READ_ONLY,
+                    ifItFailsHint = "If folder not found, verify step 1 was completed so `~/storage` symlink exists."
+                ),
+                GuidedWorkflowStep(
+                    stepNumber = 3,
+                    title = "Switch into Debian PRoot Linux",
+                    targetDeviceName = "Google Pixel 7 Pro",
+                    environmentType = ExecutionEnvironmentType.TERMUX_HOST,
+                    explanationPlainEnglish = "Launch the Debian Linux container inside Termux.",
+                    commandToRun = "proot-distro login debian",
+                    expectedResult = "Terminal prompt changes from '~ \$' to 'root@localhost:~#'.",
+                    impactLevel = ImpactLevel.READ_ONLY,
+                    ifItFailsHint = "If proot-distro is missing, run `pkg install proot-distro -y` in Termux first."
+                ),
+                GuidedWorkflowStep(
+                    stepNumber = 4,
+                    title = "Navigate & Inspect Debian Linux Workspace",
+                    targetDeviceName = "Google Pixel 7 Pro",
+                    environmentType = ExecutionEnvironmentType.DEBIAN_PROOT,
+                    explanationPlainEnglish = "Inside Debian, enter `/root` and check your project files and git status.",
+                    commandToRun = "cd /root && pwd && ls -la",
+                    expectedResult = "You see Debian root directory contents and projects.",
+                    impactLevel = ImpactLevel.READ_ONLY,
+                    ifItFailsHint = "Confirm your screen prompt ends with '#' indicating you are inside Debian."
+                ),
+                GuidedWorkflowStep(
+                    stepNumber = 5,
+                    title = "Exit Debian and Return to Termux Host",
+                    targetDeviceName = "Google Pixel 7 Pro",
+                    environmentType = ExecutionEnvironmentType.DEBIAN_PROOT,
+                    explanationPlainEnglish = "When done working in Linux, exit back to the outer Termux shell.",
+                    commandToRun = "exit",
+                    expectedResult = "Prompt changes back from '#' to '~ \$'.",
+                    impactLevel = ImpactLevel.READ_ONLY,
+                    ifItFailsHint = "You can also press Ctrl+D in Termux to exit the current shell session."
+                )
+            )
+        ),
         GuidedWorkflow(
             id = "workflow-ssh-full-session",
             title = "Start Phone SSH & Enter Debian from Windows 11",

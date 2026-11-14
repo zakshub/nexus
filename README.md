@@ -6,10 +6,10 @@ NEXUS is a personal, security conscious technical assistant intended to help its
 
 ## Product status
 
-**Stage:** Phase 8 Milestone 2 Complete (2026 Light-First UI Refinement: Splash, Genuine Loading & Home Dashboard)  
-**Release:** `0.11.0` (`release/nexus-v0.11.0.apk` 56MB verified, 26/26 unit tests passing)  
-**Implementation:** Personal MVP + 2026 Light-First UI (Style 1) + Genuine Loading Experience + Live Environment Inspector (**100% complete**)  
-**Direct APK Download:** [Download NEXUS APK v0.11.0](https://github.com/zakshub/nexus/raw/main/release/nexus-v0.11.0.apk)  
+**Stage:** Phase 8 Milestone 3 Complete (Mobile Terminal Agent Co-Pilot: Termux ↔ Debian PRoot & On-Device Gemini Storage)  
+**Release:** `0.12.0` (`release/nexus-v0.12.0.apk` 56MB verified, 31/31 unit tests passing)  
+**Implementation:** Personal MVP + 2026 Light-First UI + Mobile Terminal Agent Co-Pilot + Live Environment Inspector (**100% complete**)  
+**Direct APK Download:** [Download NEXUS APK v0.12.0](https://github.com/zakshub/nexus/raw/main/release/nexus-v0.12.0.apk)  
 **User guide:** See [5-Minute Owner Playbook](docs/OWNER_PLAYBOOK.md) for installation and daily usage.
 
 ## The problem
